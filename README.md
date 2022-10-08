@@ -79,10 +79,10 @@ public Either<Falla, Id> crearDepartamento(String codigo, String nombre, String 
 
 El modelo de datos de ejemplo esta inspirado en el esquema 
 [scott/tiger](https://www.orafaq.com/wiki/SCOTT) tradicionalmente empleado por Oracle 
-Corporation para introducir SQL. 
+Corporation para enseñar el lenguaje SQL. 
 
-Además de reformularlo en español, en este repositorio se le añaden algunos pequeños detalles para utilizarlo 
-mediante JPA:
+Además de reformularlo en español, en este repositorio se le añade a este modelo algunos pequeños detalles para 
+utilizarlo mediante JPA:
 
 ![Modelo](docs/img/modelo.png)
 
@@ -235,11 +235,11 @@ son de tipo `String` y corresponden a un _random `UUID`_ generado desde la aplic
 
 Para impedir que se añadan nuevas instancias con valores duplicados de clave natural es necesario verificar, al 
 crear una nueva instancia de la entidad, que no exista ya en su tabla una fila con el mismo valor. Así mismo, se 
-debe añadir a las entidades JPA una anotación `@Table/@UniqueConstraint`
+requiere añadir a las entidades JPA una anotación `@Table/@UniqueConstraint`
 
 ## Insertando una Nueva Instancia de Entidad (Toma 2)
 
-Dada la necesidad de verificar que no haya valores duplicados para las claves primarias naturales, la persistencia de 
+Para garantizar que no haya valores duplicados para las claves primarias naturales, la persistencia de 
 una nueva instancia de `Departamento` luciría ahora como:
 
 ```java
@@ -300,8 +300,10 @@ Qué es lo que cambia de entidad en entidad cuando queremos persistir una nueva 
 
 Todo lo demás tiene _siempre_ la misma lógica!
 
-Para formular las partes móviles de forma reutilizable Java provee dos poderosos aliados: tipos de datos genéricos y 
-lambdas.
+Para formular las partes móviles de forma reutilizable Java provee dos poderosos aliados: 
+
+- Tipos de datos genéricos y 
+- Lambdas
 
 Dado que todas las clases que nos atañen extienden la superclase `Entidad` podemos definir para nuestro método un 
 tipo de datos genérico `<E extends Entidad>`. Por extensión, el tipo del repositorio sería 
@@ -321,6 +323,14 @@ String persistirInstancia(
         Supplier<Optional<E>> recuperarPorClaveNatural,
         Supplier<E> crearInstancia
 ) {
+    // Construye y valida instancia de entidad
+    final E entidad;
+    try {
+        entidad = crearInstancia.get();
+    } catch (Exception e) {
+        throw new RuntimeException("Error creando instancia de entidad en memoria", e);
+    }
+
     // Valida que la clave primaria natural no sea duplicada
     final Optional<E> optEntidad;
     try {
@@ -331,14 +341,6 @@ String persistirInstancia(
     optEntidad.ifPresent(d -> {
         throw new IllegalArgumentException("Ya existe una entidad con la misma clave natural");
     });
-    
-    // Construye y valida instancia de entidad
-    final E entidad;
-    try {
-        entidad = crearInstancia.get();
-    } catch (Exception e) {
-        throw new RuntimeException("Error creando instancia de entidad en memoria", e);
-    }
 
     // Persiste nueva entidad
     final E entidadGuardada;
@@ -372,7 +374,7 @@ public String crearDepartamento(String codigo, String nombre, String localidad) 
 🤩 Aah, _excelente_ simplificación! 
 
 Y es segura en tipos de datos! Si, por error, escribiéramos `repositorioEmpleado` donde debiera decir 
-`repositorioDepartamento` el compilador de Java y/o la IDE nos lo harían saber de inmediato.
+`repositorioDepartamento`, el compilador de Java y/o la IDE nos lo harían saber _de inmediato_.
 
 ## Capturando Recetas Repetitivas  (Toma 2)
 
@@ -399,8 +401,8 @@ del lenguaje para reportar o reaccionar a condiciones de error.
 Sin embargo, las excepciones rompen el control de flujo y, tomadas a la ligera, dificultan lidiar con condiciones de 
 error. 
 
-_En la vida práctica, tristemente, muchos desarrolladores simplemente las ignoran y las dejan propagar hasta 
-el nivel superior de la aplicación!_
+_En la vida práctica, tristemente, muchos desarrolladores simplemente ignoran las excepciones y las dejan propagar 
+hasta el nivel superior de la aplicación!_
 
 
 
