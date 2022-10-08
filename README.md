@@ -18,39 +18,47 @@ la base de datos como:
 ```java
 // Retorna el id generado para una nueva instancia de departamento persistida exitosamente
 // o causa una excepción en cada posible escenario de falla
-public String crearDepartamento(String codigo, String nombre, String localidad) {
-    // Construye y valida instancia de departamento
-    final Departamento departamento;
-    try {
-        departamento = Departamento.builder()
-                .codigo(codigo)
-                .nombre(nombre)
-                .localidad(localidad)
-                .build();
-    } catch (Exception e) {
-        throw new RuntimeException("Error de validación creando departamento", e);
-    }
+public String crearDepartamento(
+  String codigo, 
+  String nombre, 
+  String localidad) 
+{
+  // Construye y valida instancia de departamento
+  final Departamento departamento;
+  try {
+    departamento = 
+      Departamento.builder()
+        .codigo(codigo)
+        .nombre(nombre)
+        .localidad(localidad)
+        .build();
+  } catch (Exception e) {
+    throw new RuntimeException("Error de validación creando departamento", e);
+  }
 
-    // Persiste nuevo departamento
-    final Departamento departamentoGuardado;
-    try {
-        departamentoGuardado = repositorioDepartamento.save(departamento);
-    } catch (Exception e) {
-        throw new RuntimeException("Error persistiendo nuevo departamento", e);
-    }
+  // Persiste nuevo departamento
+  final Departamento departamentoGuardado;
+  try {
+    departamentoGuardado = 
+      repositorioDepartamento.save(departamento);
+  } catch (Exception e) {
+    throw new RuntimeException("Error persistiendo nuevo departamento", e);
+  }
 
-    // Retorna id generado para nuevo departamento
-    return departamentoGuardado.getId();
+  // Retorna id generado para nuevo departamento
+  return departamentoGuardado.getId();
 }
 ```
 
 Empleando el DSL implementado en este repositorio, la misma funcionalidad luciría como:
 
 ```java
-// Retorna id generado para nueva instancia de departamento
-public String crearDepartamento(String codigo, 
-                                String nombre, 
-                                String localidad) {
+// Retorna id generado para nuevo departamento
+public String crearDepartamento(
+  String codigo, 
+  String nombre, 
+  String localidad) 
+{
   return persistirInstancia(
     repositorioDepartamento,
     () -> Departamento.builder()
@@ -110,12 +118,15 @@ public class Departamento extends Entidad {
   private String localidad;
 
   @OneToMany(mappedBy = "departamento", cascade = CascadeType.ALL)
-  private final Set<Empleado> empleados = new HashSet<>();
+  private final Set<Empleado> 
+    empleados = new HashSet<>();
 
   @Builder
-  public Departamento(String codigo, 
-                      String nombre, 
-                      String localidad) {
+  public Departamento(
+    String codigo, 
+    String nombre, 
+    String localidad) 
+  {
     this.codigo = codigo;
     this.nombre = nombre;
     this.localidad = localidad;
@@ -123,8 +134,10 @@ public class Departamento extends Entidad {
   }
 
   public String relocalizar(String nuevaLocalidad) {
-    String localidadOriginal = this.localidad;
-    this.localidad = nuevaLocalidad;
+    String localidadOriginal = 
+      this.localidad;
+    this.localidad =
+      nuevaLocalidad;
     validarAtributos();
     return localidadOriginal;
   }
@@ -136,17 +149,20 @@ public class Departamento extends Entidad {
 Para persistir una nueva instancia de `Departamento` se requeriría algo como:
 
 ```java
-public String crearDepartamento(String codigo, 
-                                String nombre,
-                                String localidad) {
+public String crearDepartamento(
+  String codigo, 
+  String nombre,
+  String localidad) 
+{
   // Construye y valida instancia de departamento
   final Departamento departamento;
   try {
-    departamento = Departamento.builder()
-      .codigo(codigo)
-      .nombre(nombre)
-      .localidad(localidad)
-      .build();
+    departamento = 
+      Departamento.builder()
+        .codigo(codigo)
+        .nombre(nombre)
+        .localidad(localidad)
+        .build();
   } catch (Exception e) {
     throw new RuntimeException("Error de validación creando departamento", e);
   }
@@ -155,13 +171,14 @@ public String crearDepartamento(String codigo,
   final Departamento departamentoGuardado;
   try {
     departamentoGuardado = 
-        repositorioDepartamento.save(departamento);
+      repositorioDepartamento.save(departamento);
   } catch (Exception e) {
     throw new RuntimeException("Error de persistencia creando departamento", e);
   }
 
   // Retorna id generado para nuevo departamento
-  return departamentoGuardado.getId();
+  return departamentoGuardado
+    .getId();
 }
 ```
 
@@ -172,11 +189,12 @@ public String crearEmpleado(String codigo, String nombre, Genero genero) {
   // Construye y valida instancia de empleado
   final Empleado empleado;
   try {
-    empleado = Empleado.builder()
-      .codigo(codigo)
-      .nombre(nombre)
-      .genero(genero)
-      .build();
+    empleado = 
+      Empleado.builder()
+        .codigo(codigo)
+        .nombre(nombre)
+        .genero(genero)
+        .build();
   } catch (Exception e) {
     throw new RuntimeException("Error de validación creando empleado", e);
   }
@@ -191,7 +209,8 @@ public String crearEmpleado(String codigo, String nombre, Genero genero) {
   }
 
   // Retorna id generado para nuevo empleado
-  return empleadoGuardado.getId();
+  return empleadoGuardado
+    .getId();
 }
 ```
 
@@ -211,16 +230,24 @@ la _cédula_ de la persona o el _código_ del departamento) por claves primarias
 
 ```sql
 CREATE TABLE departamento (
-  id   INTEGER   NOT NULL DEFAULT nextval('departamento_seq') PRIMARY KEY,
-  codigo VARCHAR(16) NOT NULL UNIQUE,
+  id   INTEGER   NOT NULL 
+    DEFAULT nextval('departamento_seq') 
+    PRIMARY KEY,
+  codigo VARCHAR(16) NOT NULL 
+    UNIQUE,
   nombre VARCHAR(24) NOT NULL
 );
 CREATE TABLE empleado (
-  id        VARCHAR(32) NOT NULL DEFAULT gen_random_uuid() PRIMARY KEY,
-  codigo      VARCHAR(16) NOT NULL UNIQUE,
+  id        VARCHAR(32) NOT NULL 
+    DEFAULT gen_random_uuid() 
+    PRIMARY KEY,
+  codigo      VARCHAR(16) NOT NULL 
+    UNIQUE,
   nombre      VARCHAR(24) NOT NULL,
-  id_departamento INTEGER   NOT NULL REFERENCES departamento (id),
-  id_supervisor   VARCHAR(32) REFERENCES empleado (id)
+  id_departamento INTEGER   NOT NULL 
+    REFERENCES departamento (id),
+  id_supervisor   VARCHAR(32) 
+    REFERENCES empleado (id)
 );
 ```
 
@@ -241,8 +268,8 @@ public String crearDepartamento(String codigo, String nombre, String localidad) 
   // Valida que el código de departamento no sea duplicado
   final Optional<Departamento> optDepartamento;
   try {
-    optDepartamento = 
-      repositorioDepartamento.findByCodigo(codigo);
+    optDepartamento = repositorioDepartamento
+      .findByCodigo(codigo);
   } catch (Exception e) {
     throw new RuntimeException("Error recuperando departamento por código", e);
   }
@@ -254,11 +281,12 @@ public String crearDepartamento(String codigo, String nombre, String localidad) 
   // Construye y valida instancia de departamento
   final Departamento departamento;
   try {
-    departamento = Departamento.builder()
-      .codigo(codigo)
-      .nombre(nombre)
-      .localidad(localidad)
-      .build();
+    departamento = 
+      Departamento.builder()
+        .codigo(codigo)
+        .nombre(nombre)
+        .localidad(localidad)
+        .build();
   } catch (Exception e) {
     throw new RuntimeException("Error de validación creando departamento", e);
   }
@@ -266,13 +294,15 @@ public String crearDepartamento(String codigo, String nombre, String localidad) 
   // Persiste nuevo departamento
   final Departamento departamentoGuardado;
   try {
-    departamentoGuardado = repositorioDepartamento.save(departamento);
+    departamentoGuardado = repositorioDepartamento
+      .save(departamento);
   } catch (Exception e) {
     throw new RuntimeException("Error de persistencia creando departamento", e);
   }
 
   // Retorna id generado para nuevo departamento
-  return departamentoGuardado.getId();
+  return departamentoGuardado
+    .getId();
 }
 ```
 
@@ -326,8 +356,9 @@ public static<E, I> I persistirInstancia(
   }
 
   if(validacion != null) {
-    try{
-      validacion.accept(entidad);
+    try {
+      validacion
+        .accept(entidad);
     } catch(ExcepcionServicio e){
         throw e;
     } catch(Exception e){
@@ -337,12 +368,14 @@ public static<E, I> I persistirInstancia(
 
   final E entidadGuardada;
   try {
-    entidadGuardada = repositorio.save(entidad);
+    entidadGuardada = 
+      repositorio.save(entidad);
   } catch(Exception e) {
     throw new ExcepcionServicio("Error persistiendo nueva instancia",e);
   }
 
-  return clavePrimaria.apply(entidadGuardada);
+  return clavePrimaria
+    .apply(entidadGuardada);
 }
 ```
 
@@ -357,11 +390,12 @@ public String crearDepartamento(
   return persistirInstancia(
     repositorioDepartamento,
     detectarDuplicado(repositorioDepartamento::buscarPorCodigo, codigo),
-    () -> Departamento.builder()
-      .codigo(codigo)
-      .nombre(nombre)
-      .localidad(localidad)
-      .build()
+    () -> 
+      Departamento.builder()
+        .codigo(codigo)
+        .nombre(nombre)
+        .localidad(localidad)
+        .build()
   ));
 }
 ```
