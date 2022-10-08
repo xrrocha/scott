@@ -16,14 +16,13 @@ Un servicio Spring típico implementaría imperativamente la persistencia de una
 la base de datos como:
 
 ```java
-// Retorna el id generado para una nueva instancia de departamento persistida exitosamente
-// o causa una excepción en cada posible escenario de falla
+// Retorna id generado para nuevo departamento
 public String crearDepartamento(
   String codigo, 
   String nombre, 
   String localidad) 
 {
-  // Construye y valida instancia de departamento
+  // Construye y valida departamento
   final Departamento departamento;
   try {
     departamento = 
@@ -159,7 +158,7 @@ public String crearDepartamento(
   String nombre,
   String localidad) 
 {
-  // Construye y valida instancia de departamento
+  // Construye y valida departamento
   final Departamento departamento;
   try {
     departamento = 
@@ -289,7 +288,7 @@ public String crearDepartamento(
     throw new IllegalArgumentException(mensaje);
   });
   
-  // Construye y valida instancia de departamento
+  // Construye y valida departamento
   final Departamento departamento;
   try {
     departamento = 
