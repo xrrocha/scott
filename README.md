@@ -227,12 +227,12 @@ CREATE TABLE empleado (
 );
 ```
 
-Para este efecto es necesario añadir a las entidades JPA una anotación `@Table/@UniqueConstraint`. Así mismo, es 
-conveniente verificar que, al crear una nueva instancia de la entidad, no exista ya en su tabla una fila con el 
-mismo valor de clave natural.
-
 👉 En nuestro repositorio de ejemplo hemos establecido la simplificación de que todas las claves primarias sintéticas 
 son de tipo `String` y corresponden a un _random `UUID`_ generado desde la aplicación.
+
+Para impedir que se añadan nuevas instancias con valores duplicados de clave natural es necesario verificar, al 
+crear una nueva instancia de la entidad, que no exista ya en su tabla una fila con el mismo valor. Así mismo, se 
+debe añadir a las entidades JPA una anotación `@Table/@UniqueConstraint`
 
 ## Insertando una Nueva Instancia de Entidad (Toma 2)
 
@@ -368,8 +368,8 @@ public String crearDepartamento(String codigo, String nombre, String localidad) 
 
 🤩 Aah, _excelente_ simplificación! 
 
-Y es segura en tipos de datos! Si, por error, escribiéramos `repositorioEmpleado` donde debiera decir
-`repositorioDepartamento` el compilador de Java (o la IDE) nos lo haría saber de inmediato.
+Y es segura en tipos de datos! Si, por error, escribiéramos `repositorioEmpleado` donde debiera decir 
+`repositorioDepartamento` el compilador de Java y/o la IDE nos lo harían saber de inmediato.
 
 ## Capturando Recetas Repetitivas  (Toma 2)
 
@@ -394,7 +394,9 @@ Algunos programadores Java no verían en esto un problema. Despues de todo, las 
 del lenguaje para reportar o reaccionar a condiciones de error.
 
 Sin embargo, las excepciones rompen el control de flujo y, tomadas a la ligera, dificultan lidiar con condiciones de 
-error. _En la vida práctica, tristemente, muchos desarrolladores simplemente las ignoran y las dejan propagar hasta 
+error. 
+
+_En la vida práctica, tristemente, muchos desarrolladores simplemente las ignoran y las dejan propagar hasta 
 el nivel superior de la aplicación!_
 
 
