@@ -48,8 +48,10 @@ public class Departamento extends Entidad {
         validarAtributos();
     }
 
-    public void relocalizar(String nuevaLocalidad) {
-        // TODO Validar!
-        localidad = nuevaLocalidad;
+    public String relocalizar(String nuevaLocalidad) {
+        String localidadOriginal = this.localidad;
+        this.localidad = nuevaLocalidad;
+        validarAtributos();
+        return localidadOriginal;
     }
 }
