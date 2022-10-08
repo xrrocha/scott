@@ -10,7 +10,7 @@ así como con
 [Spring Data JPA](https://spring.io/projects/spring-data-jpa).
 
 El DSL implementado en este repositorio captura patrones repetitivos en el uso de repositorios JPA desde componentes 
-Spring con estereotipo servicio (`@Service`).
+Spring con estereotipo de servicio (`@Service`).
 
 Un servicio Spring típico implementaría imperativamente la persistencia de una nueva instancia de `Departamento` en 
 la base de datos como:
@@ -239,8 +239,8 @@ requiere añadir a las entidades JPA una anotación `@Table/@UniqueConstraint`
 
 ## Insertando una Nueva Instancia de Entidad (Toma 2)
 
-Para garantizar que no haya valores duplicados para las claves primarias naturales, la persistencia de 
-una nueva instancia de `Departamento` luciría ahora como:
+Para garantizar que no haya múltiples departamentos con el mismo código, la persistencia de una nueva instancia de 
+`Departamento` luciría ahora como:
 
 ```java
 public String crearDepartamento(String codigo, String nombre, String localidad) {
@@ -285,7 +285,7 @@ La creación de una nueva entidad de `Empleado` se verá también aumentada con 
 
 Esto es repetitivo, tedioso y _propenso al error_!
 
-👉 **Una de las principales fuentes de_ bugs _en el desarrollo de aplicaciones son los errores en la transcripción de 
+👉 **Una de las principales fuentes de _bugs_ en el desarrollo de aplicaciones son los errores en la transcripción de 
 recetas repetitivas como esta**.
 
 ## Capturando Recetas Repetitivas  (Toma 1)
@@ -323,7 +323,7 @@ String persistirInstancia(
         Supplier<Optional<E>> recuperarPorClaveNatural,
         Supplier<E> crearInstancia
 ) {
-    // Construye y valida instancia de entidad
+    // Construye y valida instancia de entidad (fail fast)
     final E entidad;
     try {
         entidad = crearInstancia.get();
@@ -401,7 +401,7 @@ del lenguaje para reportar o reaccionar a condiciones de error.
 Sin embargo, las excepciones rompen el control de flujo y, tomadas a la ligera, dificultan lidiar con condiciones de 
 error. 
 
-_En la vida práctica, tristemente, muchos desarrolladores simplemente ignoran las excepciones y las dejan propagar 
+👉 _En la vida práctica, 🥺, muchos desarrolladores simplemente ignoran las excepciones y las dejan propagar 
 hasta el nivel superior de la aplicación!_
 
 
