@@ -4,31 +4,13 @@ Este repositorio ilustra el diseño, implementación y uso de un lenguaje de dom
 empleando patrones funcionales.
 
 El argumento de estudio es una aplicación SpringBoot JPA inspirada en el tradicional esquema _scott/tiger_ popularizado
-por Oracle desde los años 80.
+por Oracle desde sus inicios.
 
 El DSL implementado en este repositorio captura patrones repetitivos en el uso de repositorios JPA desde componentes 
 Spring con estereotipo servicio (`@Service`).
 
-Empleando este DSL la persistencia de una nueva instancia de `Departamento` en la base de datos luciría como:
-
-```java
-// Retorna el id generado para una nueva instancia de departamento persistida exitosamente
-// o un objeto de falla que contiene información de qué problema ocurrió al intentar persistir
-public Either<Falla, Id> crearDepartamento(String codigo, String nombre, String localidad) {
-    return nuevaInstanciaEntidad(
-            contexto("Crear departamento " + nombre, repositorioDepartamento),
-            detectarDuplicado(repositorioDepartamento::buscarPorCodigo, codigo),
-            crearInstancia(() ->
-                    Departamento.builder()
-                            .codigo(codigo)
-                            .nombre(nombre)
-                            .localidad(localidad)
-                            .build()
-            ));
-}
-```
-
-Un servicio Spring típico, en cambio, implementaría esta misma funcionalidad de forma imperativa como:
+Un servicio Spring típico implementaría imperativamente la persistencia de una nueva instancia de `Departamento` en 
+la base de datos como:
 
 ```java
 // Retorna el id generado para una nueva instancia de departamento persistida exitosamente
@@ -68,6 +50,25 @@ public String crearDepartamento(String codigo, String nombre, String localidad) 
 
     // Retorna id generado para nuevo departamento
     return departamentoGuardado.getId();
+}
+```
+
+Empleando el DSL implementado en este repositorio, la misma funcionalidad luciría como:
+
+```java
+// Retorna el id generado para una nueva instancia de departamento persistida exitosamente
+// o un objeto de falla que contiene información de qué problema ocurrió al intentar persistir
+public Either<Falla, Id> crearDepartamento(String codigo, String nombre, String localidad) {
+    return nuevaInstanciaEntidad(
+            contexto("Crear departamento " + nombre, repositorioDepartamento),
+            detectarDuplicado(repositorioDepartamento::buscarPorCodigo, codigo),
+            crearInstancia(() ->
+                    Departamento.builder()
+                            .codigo(codigo)
+                            .nombre(nombre)
+                            .localidad(localidad)
+                            .build()
+            ));
 }
 ```
 
