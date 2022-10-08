@@ -6,15 +6,17 @@ empleando patrones funcionales.
 El argumento de estudio es una aplicación SpringBoot JPA inspirada en el tradicional esquema _scott/tiger_ popularizado
 por Oracle desde los años 80.
 
-El [DSL](src/main/java/scott/infra/jpa/ServicioDSL.java) implementado en este repositorio captura patrones repetitivos 
-en el uso de repositorios JPA desde componentes Spring con estereotipo servicio (`@Service`).
+El DSL implementado en este repositorio captura patrones repetitivos en el uso de repositorios JPA desde componentes 
+Spring con estereotipo servicio (`@Service`).
 
 Empleando este DSL la persistencia de una nueva instancia de `Departamento` en la base de datos luciría como:
 
 ```java
+// Retorna el id generado para una nueva instancia de departamento persistida exitosamente
+// o un objeto de falla que contiene información de qué problema ocurrió al intentar persistir
 public Either<Falla, Id> crearDepartamento(String codigo, String nombre, String localidad) {
     return nuevaInstanciaEntidad(
-            contexto("Crear departamento %s".formatted(nombre), repositorioDepartamento),
+            contexto("Crear departamento " + nombre, repositorioDepartamento),
             detectarDuplicado(repositorioDepartamento::buscarPorCodigo, codigo),
             crearInstancia(() ->
                     Departamento.builder()
@@ -29,6 +31,8 @@ public Either<Falla, Id> crearDepartamento(String codigo, String nombre, String 
 Un servicio Spring típico, en cambio, implementaría esta misma funcionalidad de forma imperativa como:
 
 ```java
+// Retorna el id generado para una nueva instancia de departamento persistida exitosamente
+// o causa una excepción en cada posible escenario de falla
 public String crearDepartamento(String codigo, String nombre, String localidad) {
     // Valida que el código de departamento no sea duplicado
     final Optional<Departamento> optDepartamento;
@@ -59,7 +63,7 @@ public String crearDepartamento(String codigo, String nombre, String localidad) 
     try {
         departamentoGuardado = repositorioDepartamento.guardar(departamento);
     } catch (Exception e) {
-        throw new RuntimeException("Error persistiendo nuevo departamento en base de datos", e);
+        throw new RuntimeException("Error persistiendo nuevo departamento", e);
     }
 
     // Retorna id generado para nuevo departamento
