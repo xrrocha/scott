@@ -147,28 +147,28 @@ Para persistir una nueva instancia de `Departamento` se requeriría algo como:
 
 ```java
 public String crearDepartamento(String codigo, String nombre, String localidad) {
-    // Construye y valida instancia de departamento
-    final Departamento departamento;
-    try {
-        departamento = Departamento.builder()
-                .codigo(codigo)
-                .nombre(nombre)
-                .localidad(localidad)
-                .build();
-    } catch (Exception e) {
-        throw new RuntimeException("Error de validación creando departamento", e);
-    }
+  // Construye y valida instancia de departamento
+  final Departamento departamento;
+  try {
+    departamento = Departamento.builder()
+        .codigo(codigo)
+        .nombre(nombre)
+        .localidad(localidad)
+        .build();
+  } catch (Exception e) {
+    throw new RuntimeException("Error de validación creando departamento", e);
+  }
 
-    // Persiste nuevo departamento
-    final Departamento departamentoGuardado;
-    try {
-        departamentoGuardado = repositorioDepartamento.save(departamento);
-    } catch (Exception e) {
-        throw new RuntimeException("Error de persistencia creando departamento", e);
-    }
+  // Persiste nuevo departamento
+  final Departamento departamentoGuardado;
+  try {
+    departamentoGuardado = repositorioDepartamento.save(departamento);
+  } catch (Exception e) {
+    throw new RuntimeException("Error de persistencia creando departamento", e);
+  }
 
-    // Retorna id generado para nuevo departamento
-    return departamentoGuardado.getId();
+  // Retorna id generado para nuevo departamento
+  return departamentoGuardado.getId();
 }
 ```
 
@@ -176,28 +176,28 @@ Para persistir una nueva instancia de `Empleado` se requeriría algo _muy semeja
 
 ```java
 public String crearEmpleado(String codigo, String nombre, Genero genero) {
-    // Construye y valida instancia de empleado
-    final Empleado empleado;
-    try {
-        empleado = Empleado.builder()
-                .codigo(codigo)
-                .nombre(nombre)
-                .genero(genero)
-                .build();
-    } catch (Exception e) {
-        throw new RuntimeException("Error de validación creando empleado", e);
-    }
+  // Construye y valida instancia de empleado
+  final Empleado empleado;
+  try {
+    empleado = Empleado.builder()
+        .codigo(codigo)
+        .nombre(nombre)
+        .genero(genero)
+        .build();
+  } catch (Exception e) {
+    throw new RuntimeException("Error de validación creando empleado", e);
+  }
 
-    // Persiste nuevo Empleado
-    final Empleado empleadoGuardado;
-    try {
-        empleadoGuardado = repositorioEmpleado.save(empleado);
-    } catch (Exception e) {
-        throw new RuntimeException("Error de persistencia creando empleado", e);
-    }
+  // Persiste nuevo Empleado
+  final Empleado empleadoGuardado;
+  try {
+    empleadoGuardado = repositorioEmpleado.save(empleado);
+  } catch (Exception e) {
+    throw new RuntimeException("Error de persistencia creando empleado", e);
+  }
 
-    // Retorna id generado para nuevo empleado
-    return empleadoGuardado.getId();
+  // Retorna id generado para nuevo empleado
+  return empleadoGuardado.getId();
 }
 ```
 
@@ -217,16 +217,16 @@ la _cédula_ de la persona o el _código_ del departamento) por claves primarias
 
 ```sql
 CREATE TABLE departamento (
-    id     INTEGER     NOT NULL DEFAULT nextval('departamento_seq') PRIMARY KEY,
-    codigo VARCHAR(16) NOT NULL UNIQUE,
-    nombre VARCHAR(24) NOT NULL
+  id   INTEGER   NOT NULL DEFAULT nextval('departamento_seq') PRIMARY KEY,
+  codigo VARCHAR(16) NOT NULL UNIQUE,
+  nombre VARCHAR(24) NOT NULL
 );
 CREATE TABLE empleado (
-    id              VARCHAR(32) NOT NULL DEFAULT gen_random_uuid() PRIMARY KEY,
-    codigo          VARCHAR(16) NOT NULL UNIQUE,
-    nombre          VARCHAR(24) NOT NULL,
-    id_departamento INTEGER     NOT NULL REFERENCES departamento (id),
-    id_supervisor   VARCHAR(32) REFERENCES empleado (id)
+  id        VARCHAR(32) NOT NULL DEFAULT gen_random_uuid() PRIMARY KEY,
+  codigo      VARCHAR(16) NOT NULL UNIQUE,
+  nombre      VARCHAR(24) NOT NULL,
+  id_departamento INTEGER   NOT NULL REFERENCES departamento (id),
+  id_supervisor   VARCHAR(32) REFERENCES empleado (id)
 );
 ```
 
@@ -260,10 +260,10 @@ public String crearDepartamento(String codigo, String nombre, String localidad) 
   final Departamento departamento;
   try {
     departamento = Departamento.builder()
-        .codigo(codigo)
-        .nombre(nombre)
-        .localidad(localidad)
-        .build();
+      .codigo(codigo)
+      .nombre(nombre)
+      .localidad(localidad)
+      .build();
   } catch (Exception e) {
     throw new RuntimeException("Error de validación creando departamento", e);
   }
@@ -319,9 +319,9 @@ Veamos:
 ```java
 public <E extends Entidad, R extends JpaRepository<E, String>> 
 String persistirInstancia(
-    R repositorio,
-    Supplier<Optional<E>> recuperarPorClaveNatural,
-    Supplier<E> crearInstancia
+  R repositorio,
+  Supplier<Optional<E>> recuperarPorClaveNatural,
+  Supplier<E> crearInstancia
 ) {
   // Construye y valida instancia de entidad (fail fast)
   final E entidad;
