@@ -20,7 +20,7 @@ public class RepositorioDSL {
         try {
             action.run();
             return Either.right(null);
-        } catch (ExcepcionServicio e) {
+        } catch (ExcepcionDSL e) {
             return Either.left(new FallaGeneral(e.getMessage()));
         } catch (Throwable e) {
             return Either.left(new CondicionError("Error inesperado en método de servicio", e));
@@ -30,7 +30,7 @@ public class RepositorioDSL {
     public static <R> Either<Falla, R> responderCon(CheckedFunction0<R> action) {
         try {
             return Either.right(action.apply());
-        } catch (ExcepcionServicio e) {
+        } catch (ExcepcionDSL e) {
             return Either.left(new FallaGeneral(e.getMessage()));
         } catch (Throwable e) {
             return Either.left(new CondicionError("Error inesperado en método de servicio", e));
@@ -40,19 +40,19 @@ public class RepositorioDSL {
     public static <E, I, R> E leer(JpaRepository<E, I> repositorio, I id) {
         return Optional.ofNullable(id)
                 .flatMap(repositorio::findById)
-                .orElseThrow(() -> new ExcepcionServicio("Id inexistente: %s".formatted(id)));
+                .orElseThrow(() -> new ExcepcionDSL("Id inexistente: %s".formatted(id)));
     }
 
     public static <E, I, R> E leerOpcional(JpaRepository<E, I> repositorio, I id) {
         if (id == null) return null;
         else return repositorio.findById(id)
-                .orElseThrow(() -> new ExcepcionServicio("Id inexistente: %s".formatted(id)));
+                .orElseThrow(() -> new ExcepcionDSL("Id inexistente: %s".formatted(id)));
     }
 
     public static <E, C>
     Consumer<E> detectarDuplicado(Function<C, Optional<E>> extractor, C valorClave) {
         return e -> extractor.apply(valorClave).ifPresent(t -> {
-            throw new ExcepcionServicio("Ya existe una instancia con la misma clave: %s".formatted(valorClave));
+            throw new ExcepcionDSL("Ya existe una instancia con la misma clave: %s".formatted(valorClave));
         });
     }
 
@@ -66,16 +66,16 @@ public class RepositorioDSL {
         try {
             entidad = crearInstancia.get();
         } catch (Exception e) {
-            throw new ExcepcionServicio("Error creando instancia de entidad en memoria", e);
+            throw new ExcepcionDSL("Error creando instancia de entidad en memoria", e);
         }
 
         if (validacion != null) {
             try {
                 validacion.accept(entidad);
-            } catch (ExcepcionServicio e) {
+            } catch (ExcepcionDSL e) {
                 throw e;
             } catch (Exception e) {
-                throw new ExcepcionServicio("Error de validación de entidad", e);
+                throw new ExcepcionDSL("Error de validación de entidad", e);
             }
         }
 
@@ -83,7 +83,7 @@ public class RepositorioDSL {
         try {
             entidadGuardada = repositorio.save(entidad);
         } catch (Exception e) {
-            throw new ExcepcionServicio("Error persistiendo nueva instancia", e);
+            throw new ExcepcionDSL("Error persistiendo nueva instancia", e);
         }
 
         return clavePrimaria.apply(entidadGuardada);
@@ -100,13 +100,13 @@ public class RepositorioDSL {
                         try {
                             actualizar.accept(entidad);
                         } catch (Exception e) {
-                            throw new ExcepcionServicio("%s. Error de actualización: %s".formatted(id, e.getMessage()));
+                            throw new ExcepcionDSL("%s. Error de actualización: %s".formatted(id, e.getMessage()));
                         }
 
                         repositorio.saveAndFlush(entidad);
                         return 0;
                     })
-                    .orElseThrow(() -> new ExcepcionServicio("%s: no encontrado".formatted(id)));
+                    .orElseThrow(() -> new ExcepcionDSL("%s: no encontrado".formatted(id)));
         } catch (Exception e) {
             throw new RuntimeException(
                     "%s. Error inesperado durante actualización: %s".formatted(id, e.getMessage()), e);
@@ -126,14 +126,14 @@ public class RepositorioDSL {
                         try {
                             resultado = actualizar.apply(entidad);
                         } catch (Exception e) {
-                            throw new ExcepcionServicio("%s. Error de actualización: %s".formatted(id, e.getMessage()));
+                            throw new ExcepcionDSL("%s. Error de actualización: %s".formatted(id, e.getMessage()));
                         }
 
                         repositorio.saveAndFlush(entidad);
 
                         return resultado;
                     })
-                    .orElseThrow(() -> new ExcepcionServicio("%s: no encontrado".formatted(id)));
+                    .orElseThrow(() -> new ExcepcionDSL("%s: no encontrado".formatted(id)));
         } catch (Exception e) {
             throw new RuntimeException(
                     "%s. Error inesperado durante actualización: %s".formatted(id, e.getMessage()), e);
@@ -162,12 +162,12 @@ public class RepositorioDSL {
         return persistirInstancia(repositorio, Entidad::getId, null, crearInstancia);
     }
 
-    static class ExcepcionServicio extends RuntimeException {
-        public ExcepcionServicio(String mensaje) {
+    static class ExcepcionDSL extends RuntimeException {
+        public ExcepcionDSL(String mensaje) {
             super(mensaje);
         }
 
-        public ExcepcionServicio(String mensaje, Throwable causa) {
+        public ExcepcionDSL(String mensaje, Throwable causa) {
             super(mensaje, causa);
         }
     }
