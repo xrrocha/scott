@@ -62,16 +62,16 @@ Empleando el DSL implementado en este repositorio, la misma funcionalidad lucir�
 // Retorna el id generado para una nueva instancia de departamento persistida exitosamente
 // o un objeto de falla que contiene información de qué problema ocurrió al intentar persistir
 public Either<Falla, Id> crearDepartamento(String codigo, String nombre, String localidad) {
-    return nuevaInstanciaEntidad(
-            contexto("Crear departamento " + nombre, repositorioDepartamento),
-            detectarDuplicado(repositorioDepartamento::buscarPorCodigo, codigo),
-            crearInstancia(() ->
-                    Departamento.builder()
-                            .codigo(codigo)
-                            .nombre(nombre)
-                            .localidad(localidad)
-                            .build()
-            ));
+  return nuevaInstanciaEntidad(
+      contexto("Crear departamento " + nombre, repositorioDepartamento),
+      detectarDuplicado(repositorioDepartamento::buscarPorCodigo, codigo),
+      crearInstancia(() ->
+          Departamento.builder()
+              .codigo(codigo)
+              .nombre(nombre)
+              .localidad(localidad)
+              .build()
+      ));
 }
 ```
 
