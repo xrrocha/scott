@@ -293,13 +293,13 @@ public String crearDepartamento(
   try {
     optDepartamento = repositorio
       .findByCodigo(codigo);
-    } catch (Exception e) {
-      throw new RuntimeException("Error recuperando departamento por código", e);
-    }
-    optDepartamento.ifPresent(d -> {
-      String mensaje = "Ya existe un departamento con codigo %s: %s!".formatted(codigo, d.getNombre());
-      throw new IllegalArgumentException(mensaje);
-    });
+  } catch (Exception e) {
+    throw new RuntimeException("Error recuperando departamento por código", e);
+  }
+  optDepartamento.ifPresent(d -> {
+    String mensaje = "Ya existe un departamento con codigo %s: %s!".formatted(codigo, d.getNombre());
+    throw new IllegalArgumentException(mensaje);
+  });
 
   // Persiste nuevo departamento
   final Departamento departamentoGuardado;
