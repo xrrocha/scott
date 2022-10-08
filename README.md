@@ -1,10 +1,13 @@
 # Scott: Un Ejemplo de DSL Funcional en Java
 
+![tl-dr;](docs/img/tl-dr.png)
 Este repositorio ilustra el diseño, implementación y uso de un lenguaje de dominio específico (DSL) en Java 17
 empleando patrones funcionales.
-
-El argumento de estudio es una aplicación SpringBoot JPA inspirada en el tradicional esquema _scott/tiger_ popularizado
-por Oracle desde sus inicios.
+El argumento de estudio es una aplicación SpringBoot JPA inspirada en el tradicional esquema Oracle _scott/tiger_.
+Para comprender las técnicas empleadas para implementar este DSL se requiere familiaridad con las 
+[lambdas de Java](https://docs.oracle.com/javase/tutorial/java/javaOO/lambdaexpressions.html) 
+así como con 
+[Spring Data JPA](https://spring.io/projects/spring-data-jpa).
 
 El DSL implementado en este repositorio captura patrones repetitivos en el uso de repositorios JPA desde componentes 
 Spring con estereotipo servicio (`@Service`).
@@ -72,7 +75,7 @@ public Either<Falla, Id> crearDepartamento(String codigo, String nombre, String 
 }
 ```
 
-## El Modelo de Datos
+## El Modelo de Datos _scott/tiger_
 
 El modelo de datos de ejemplo esta inspirado en el esquema 
 [scott/tiger](https://www.orafaq.com/wiki/SCOTT) tradicionalmente empleado por Oracle 
@@ -81,7 +84,7 @@ Corporation para introducir SQL.
 Además de reformularlo en español, en este repositorio se le añaden algunos pequeños detalles para utilizarlo 
 mediante JPA:
 
-![Modelo](docs/modelo.png)
+![Modelo](docs/img/modelo.png)
 
 La definición de `Departamento` como entidad JPA mostrada a continuación hace uso de 
 [Lombok](https://www.javatpoint.com/lombok-java) y de 
