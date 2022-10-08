@@ -236,7 +236,7 @@ la _cédula_ de la persona o el _código_ del departamento) por claves primarias
 
 ```sql
 CREATE TABLE departamento (
-  id   INTEGER   NOT NULL 
+  id INTEGER   NOT NULL 
     DEFAULT nextval('departamento_seq') 
     PRIMARY KEY,
   codigo VARCHAR(16) NOT NULL 
@@ -244,15 +244,15 @@ CREATE TABLE departamento (
   nombre VARCHAR(24) NOT NULL
 );
 CREATE TABLE empleado (
-  id        VARCHAR(32) NOT NULL 
+  id VARCHAR(32) NOT NULL 
     DEFAULT gen_random_uuid() 
     PRIMARY KEY,
-  codigo      VARCHAR(16) NOT NULL 
+  codigoVARCHAR(16) NOT NULL 
     UNIQUE,
-  nombre      VARCHAR(24) NOT NULL,
+  nombre VARCHAR(24) NOT NULL,
   id_departamento INTEGER   NOT NULL 
     REFERENCES departamento (id),
-  id_supervisor   VARCHAR(32) 
+  id_supervisor VARCHAR(32) 
     REFERENCES empleado (id)
 );
 ```
