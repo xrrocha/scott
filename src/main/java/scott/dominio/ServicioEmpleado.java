@@ -3,10 +3,11 @@ package scott.dominio;
 import io.vavr.control.Either;
 import org.springframework.stereotype.Service;
 import scott.infra.Resultados.Falla;
-import scott.infra.jpa.ServicioDSL;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+
+import static scott.infra.jpa.ServicioDSL.*;
 
 public interface ServicioEmpleado {
     Either<Falla, String> crearEmpleado(String codigo,
@@ -27,7 +28,7 @@ public interface ServicioEmpleado {
                                   BigDecimal comision);
 
     @Service
-    class Impl extends ServicioDSL implements ServicioEmpleado {
+    class Impl implements ServicioEmpleado {
         @Override
         public Either<Falla, String> crearEmpleado(String codigo,
                                                    String nombre,

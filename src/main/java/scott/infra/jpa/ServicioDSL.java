@@ -3,8 +3,6 @@ package scott.infra.jpa;
 import io.vavr.CheckedFunction0;
 import io.vavr.CheckedRunnable;
 import io.vavr.control.Either;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.data.jpa.repository.JpaRepository;
 import scott.infra.Resultados.CondicionError;
 import scott.infra.Resultados.Falla;
@@ -16,11 +14,9 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
-public abstract class ServicioDSL {
+public class ServicioDSL {
 
-    private static final Logger logger = LoggerFactory.getLogger(ServicioDSL.class);
-
-    protected Either<Falla, Void> ejecutar(CheckedRunnable action) {
+    public static Either<Falla, Void> ejecutar(CheckedRunnable action) {
         try {
             action.run();
             return Either.right(null);
@@ -31,7 +27,7 @@ public abstract class ServicioDSL {
         }
     }
 
-    protected <R> Either<Falla, R> responderCon(CheckedFunction0<R> action) {
+    public static <R> Either<Falla, R> responderCon(CheckedFunction0<R> action) {
         try {
             return Either.right(action.apply());
         } catch (ExcepcionServicio e) {
@@ -41,26 +37,26 @@ public abstract class ServicioDSL {
         }
     }
 
-    protected <E, I, R> E leer(JpaRepository<E, I> repositorio, I id) {
+    public static <E, I, R> E leer(JpaRepository<E, I> repositorio, I id) {
         return Optional.ofNullable(id)
                 .flatMap(repositorio::findById)
                 .orElseThrow(() -> new ExcepcionServicio("Id inexistente: %s".formatted(id)));
     }
 
-    protected <E, I, R> E leerOpcional(JpaRepository<E, I> repositorio, I id) {
+    public static <E, I, R> E leerOpcional(JpaRepository<E, I> repositorio, I id) {
         if (id == null) return null;
         else return repositorio.findById(id)
                 .orElseThrow(() -> new ExcepcionServicio("Id inexistente: %s".formatted(id)));
     }
 
-    protected <E, C>
+    public static <E, C>
     Consumer<E> detectarDuplicado(Function<C, Optional<E>> extractor, C valorClave) {
         return e -> extractor.apply(valorClave).ifPresent(t -> {
             throw new ExcepcionServicio("Ya existe una instancia con la misma clave: %s".formatted(valorClave));
         });
     }
 
-    protected <E, I, R extends JpaRepository<E, I>>
+    public static <E, I, R extends JpaRepository<E, I>>
     I persistirInstancia(
             R repositorio,
             Function<E, I> clavePrimaria,
@@ -94,7 +90,7 @@ public abstract class ServicioDSL {
         return clavePrimaria.apply(entidadGuardada);
     }
 
-    protected <E, I, R> void actualizar(
+    public static <E, I, R> void actualizar(
             I id,
             JpaRepository<E, I> repositorio,
             Consumer<E> actualizar
@@ -118,7 +114,7 @@ public abstract class ServicioDSL {
         }
     }
 
-    protected <E, I, R> R actualizarRetornando(
+    public static <E, I, R> R actualizarRetornando(
             I id,
             JpaRepository<E, I> repositorio,
             Function<E, R> actualizar
@@ -145,7 +141,7 @@ public abstract class ServicioDSL {
         }
     }
 
-    protected <E, I, R extends JpaRepository<E, I>>
+    public static <E, I, R extends JpaRepository<E, I>>
     I persistirInstancia(
             R repositorio,
             Function<E, I> clavePrimaria,
@@ -154,7 +150,7 @@ public abstract class ServicioDSL {
         return persistirInstancia(repositorio, clavePrimaria, null, crearInstancia);
     }
 
-    protected <E extends Entidad, R extends JpaRepository<E, String>>
+    public static <E extends Entidad, R extends JpaRepository<E, String>>
     String persistirInstancia(
             R repositorio,
             Consumer<E> validacion,
@@ -163,7 +159,7 @@ public abstract class ServicioDSL {
         return persistirInstancia(repositorio, Entidad::getId, validacion, crearInstancia);
     }
 
-    protected <E extends Entidad, R extends JpaRepository<E, String>>
+    public static <E extends Entidad, R extends JpaRepository<E, String>>
     String persistirInstancia(R repositorio, Supplier<E> crearInstancia) {
         return persistirInstancia(repositorio, Entidad::getId, null, crearInstancia);
     }
