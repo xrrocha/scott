@@ -351,26 +351,26 @@ natural sería un ``Supplier<Optional<E>>``.
 Veamos:
 
 ```java
-public static<E, I> I 
-persistirInstancia(
+public static<E, I> 
+I persistirInstancia(
   JpaRepository<E, I> repositorio,
   Function<E, I> clavePrimaria,
   Consumer<E> validacion,
   Supplier<E> crearInstancia
 ) {
   final E entidad;
-  try{
+  try {
     entidad = crearInstancia.get();
-  } catch(Exception e){
+  } catch(Exception e) {
     throw new ExcepcionServicio("Error creando instancia de entidad en memoria",e);
   }
 
-  if(validacion != null) {
+  if (validacion != null) {
     try {
       validacion.accept(entidad);
-    } catch(ExcepcionServicio e){
+    } catch(ExcepcionServicio e) {
         throw e;
-    } catch(Exception e){
+    } catch(Exception e) {
       throw new ExcepcionServicio("Error de validación de entidad",e);
     }
   }
