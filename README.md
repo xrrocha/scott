@@ -324,7 +324,7 @@ Esto es repetitivo, tedioso y _propenso al error_!
 👉 **Una de las principales fuentes de _bugs_ en el desarrollo de aplicaciones son los errores en la transcripción de 
 recetas repetitivas como esta**.
 
-### Capturando Recetas Repetitivas  (Toma 1)
+### Capturando Recetas Repetitivas
 
 Qué partes varían de caso en caso en la receta repetitiva que nos ocupa? 
 
@@ -427,11 +427,9 @@ public String crearDepartamento(
 Y es segura en tipos de datos! Si, por error, escribiéramos `repositorio` donde debiera decir 
 `repositorio`, el compilador de Java y/o la IDE nos lo harían saber _de inmediato_.
 
-### Capturando Recetas Repetitivas  (Toma 2)
+### Reflexiones Acerca del DSL
 
-Nuestro método DSL `persistirInstancia` nos ha traído grandes beneficios ya desde su primera encarnación. 
-
-Pero, como todo en la vida, esta solución es imperfecta:
+Como todo en la vida, nuestro método DSL es imperfecto:
 
 - No soluciona _todos_ nuestros problemas
 - Nos trae _nuevos_ problemas causados por ella misma
@@ -440,20 +438,33 @@ Qué problemas nuevos nos trae?
 
 Uno inmediatamente evidente es que los mensajes de error son demasiado genéricos y no proveen contexto. Donde 
 nuestra versión original solía decir `Ya existe un departamento con codigo 30: Ventas!` ahora nuestro método DSL 
-reporta un críptico `Ya existe una entidad con la misma clave natural`. Claramente, esto necesita mejorar.
+reporta un críptico `Ya existe una instancia entidad con el mismo valor de clave: 30`. Claramente, esto podría mejorar!
 
 Qué problemas no soluciona?
 
-Un problema con nuestro código original es que hace uso muy liberal de las excepciones.
+Un problema con nuestro código original es que hace uso muy liberal de las excepciones. Sería deseable que nuestro 
+DSL nos liberara de tener que lidiar continuamente con las excepciones pero también que nos permitiera ocuparnos 
+apropiadamente de ellas cuando así se requiera.
 
-Algunos programadores Java no verían en esto un problema. Despues de todo, las excepciones son el mecanismo estándar 
-del lenguaje para reportar o reaccionar a condiciones de error.
+👉 Algunos programadores Java no verían en esto un problema. Después de todo, las excepciones son el mecanismo estándar 
+del lenguaje para reportar o propagar condiciones de error. Sin embargo, las excepciones rompen el control de flujo
+y, tomadas a la ligera, dificultan lidiar _localmente_ con las condiciones de error. En la práctica, muchos 
+desarrolladores simplemente ignoran las excepciones y las dejan propagar hasta el nivel superior de la aplicación! 
+_Somewhere in the Rytridian Galaxy, Ultra Lord weeps 🥺_
 
-Sin embargo, las excepciones rompen el control de flujo y, tomadas a la ligera, dificultan lidiar con condiciones de 
-error. 
+### El Tipo de Datos `Either`
 
-👉 En la vida práctica, muchos desarrolladores simplemente ignoran las excepciones y las dejan propagar 
-hasta el nivel superior de la aplicación! _Somewhere in the Rytridian Galaxy, Ultra Lord weeps 🥺_
+La programación funcional ofrece también una manera de ocuparse de las condiciones de error como datos y no como una 
+ruptura del flujo natural del programa: el tipo de datos `Either`
+
+La librería funcional [varv](https://vavr.io) provee una implementación conveniente del tipo de datos funcional 
+`Either<L, R>`. Una instancia de `Either` puede contener:
+
+- Un valor útil (`R`, por _right_) si la computación que le dió origen completó exitosamente, o
+- Un valor de error (`L`, por _left_) si la computación terminó anormalmente
+
+👉 Que el valor exitoso de `Either` esté a la derecha y no a la izquierda puede resultar contra-intuitivo a algunos 
+pero es, simplemente, una convención (originalmente establecida por el lenguaje Haskell).
 
 
 
