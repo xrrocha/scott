@@ -74,9 +74,12 @@ public Either<Falla, Id> crearDepartamento(String codigo, String nombre, String 
 
 ## El Modelo de Datos
 
-El modelo de datos de ejemplo esta inspirado en el esquema _scott/tiger_ tradicionalmente empleado por Oracle 
-Corporation para introducir SQL. Además de reformularlo en español, en este repositorio se le añaden algunos 
-pequeños detalles para utilizarlo mediante JPA:
+El modelo de datos de ejemplo esta inspirado en el esquema 
+[scott/tiger](https://www.orafaq.com/wiki/SCOTT) tradicionalmente empleado por Oracle 
+Corporation para introducir SQL. 
+
+Además de reformularlo en español, en este repositorio se le añaden algunos pequeños detalles para utilizarlo 
+mediante JPA:
 
 ![Modelo](docs/modelo.png)
 
@@ -228,9 +231,8 @@ Para este efecto es necesario añadir a las entidades JPA una anotación `@Table
 conveniente verificar que, al crear una nueva instancia de la entidad, no exista ya en su tabla una fila con el 
 mismo valor de clave natural.
 
-👉En nuestro repositorio de ejemplo hemos establecido la simplificación de que todas las claves primarias sintéticas 
-son de tipo `String` y corresponden a un _random `UUID`_ generado desde la aplicación antes de interactuar con la 
-base de datos.
+👉 En nuestro repositorio de ejemplo hemos establecido la simplificación de que todas las claves primarias sintéticas 
+son de tipo `String` y corresponden a un _random `UUID`_ generado desde la aplicación.
 
 ## Insertando una Nueva Instancia de Entidad (Toma 2)
 
@@ -278,10 +280,10 @@ public String crearDepartamento(String codigo, String nombre, String localidad) 
 
 La creación de una nueva entidad de `Empleado` se verá también aumentada con una verificación adicional equivalente.
 
-Esto es repetitivo, tedioso y propenso al error!
+Esto es repetitivo, tedioso y _propenso al error_!
 
-👉 _Una de las principales fuentes de_ bugs _en el desarrollo de aplicaciones son los errores en la transcripción de 
-recetas repetitivas como esta_.
+👉 **Una de las principales fuentes de_ bugs _en el desarrollo de aplicaciones son los errores en la transcripción de 
+recetas repetitivas como esta**.
 
 ## Capturando Recetas Repetitivas  (Toma 1)
 
@@ -323,7 +325,7 @@ String persistirInstancia(
     } catch (Exception e) {
         throw new RuntimeException("Error recuperando entidad por clave primaria natural", e);
     }
-        optEntidad.ifPresent(d -> {
+    optEntidad.ifPresent(d -> {
         throw new IllegalArgumentException("Ya existe una entidad con la misma clave natural");
     });
     
@@ -364,7 +366,7 @@ public String crearDepartamento(String codigo, String nombre, String localidad) 
 }
 ```
 
-🤩Aah, excelente simplificación! 
+🤩 Aah, _excelente_ simplificación! 
 
 Y es segura en tipos de datos! Si, por error, escribiéramos `repositorioEmpleado` donde debiera decir
 `repositorioDepartamento` el compilador de Java (o la IDE) nos lo haría saber de inmediato.
@@ -375,18 +377,25 @@ Nuestro método DSL `persistirInstancia` nos ha traído grandes beneficios ya de
 
 Pero, como todo en la vida, esta solución es imperfecta:
 
-- No soluciona todos nuestros problemas
-- Nos trae nuevos problemas causados por ella misma
+- No soluciona _todos_ nuestros problemas
+- Nos trae _nuevos_ problemas causados por ella misma
 
-Qué _problemas nuevos_ nos trae? 
+Qué problemas nuevos nos trae? 
 
 Uno inmediatamente evidente es que los mensajes de error son demasiado genéricos y no proveen contexto. Donde 
 nuestra versión original solía decir `Ya existe un departamento con codigo 30: Ventas!` ahora nuestro método DSL 
 reporta un críptico `Ya existe una entidad con la misma clave natural`. Claramente, esto necesita mejorar.
 
-Qué problemas _no soluciona_?
+Qué problemas no soluciona?
 
 Un problema con nuestro código original es que hace uso muy liberal de las excepciones.
+
+Algunos programadores Java no verían en esto un problema. Despues de todo, las excepciones son el mecanismo estándar 
+del lenguaje para reportar o reaccionar a condiciones de error.
+
+Sin embargo, las excepciones rompen el control de flujo y, tomadas a la ligera, dificultan lidiar con condiciones de 
+error. _En la vida práctica, tristemente, muchos desarrolladores simplemente las ignoran y las dejan propagar hasta 
+el nivel superior de la aplicación!_
 
 
 
