@@ -20,7 +20,7 @@ import java.util.stream.StreamSupport;
 @SuppressWarnings("ALL")
 public abstract class RepositorioMemoria<E extends Entidad> implements Repositorio<E> {
 
-    private static final Logger logger = LoggerFactory.getLogger(ServicioDSL.class);
+    private static final Logger logger = LoggerFactory.getLogger(RepositorioMemoria.class);
 
     final protected Map<String, E> instancias;
 

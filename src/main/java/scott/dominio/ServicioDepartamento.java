@@ -5,7 +5,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import scott.infra.Resultados.Falla;
 
-import static scott.infra.jpa.ServicioDSL.*;
+import static scott.infra.jpa.RepositorioDSL.*;
 
 public interface ServicioDepartamento {
     Either<Falla, String> crearDepartamento(String codigo, String nombre, String localidad);

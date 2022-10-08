@@ -7,7 +7,7 @@ import scott.infra.Resultados.Falla;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 
-import static scott.infra.jpa.ServicioDSL.*;
+import static scott.infra.jpa.RepositorioDSL.*;
 
 public interface ServicioEmpleado {
     Either<Falla, String> crearEmpleado(String codigo,
@@ -65,8 +65,8 @@ public interface ServicioEmpleado {
                                              BigDecimal salario,
                                              BigDecimal comision) {
             return ejecutar(() ->
-                    actualizar(idEmpleado, repositorioEmpleado, empleado ->
-                            empleado.reasignar(
+                    actualizar(idEmpleado, repositorioEmpleado,
+                            empleado -> empleado.reasignar(
                                     leer(repositorioDepartamento, idDepartamento),
                                     cargo,
                                     leerOpcional(repositorioEmpleado, idSupervisor),

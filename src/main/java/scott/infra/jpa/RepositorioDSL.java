@@ -14,7 +14,7 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
-public class ServicioDSL {
+public class RepositorioDSL {
 
     public static Either<Falla, Void> ejecutar(CheckedRunnable action) {
         try {
@@ -56,9 +56,8 @@ public class ServicioDSL {
         });
     }
 
-    public static <E, I, R extends JpaRepository<E, I>>
-    I persistirInstancia(
-            R repositorio,
+    public static <E, I> I persistirInstancia(
+            JpaRepository<E, I> repositorio,
             Function<E, I> clavePrimaria,
             Consumer<E> validacion,
             Supplier<E> crearInstancia
@@ -141,9 +140,8 @@ public class ServicioDSL {
         }
     }
 
-    public static <E, I, R extends JpaRepository<E, I>>
-    I persistirInstancia(
-            R repositorio,
+    public static <E, I> I persistirInstancia(
+            JpaRepository<E, I> repositorio,
             Function<E, I> clavePrimaria,
             Supplier<E> crearInstancia
     ) {
