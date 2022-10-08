@@ -401,8 +401,8 @@ del lenguaje para reportar o reaccionar a condiciones de error.
 Sin embargo, las excepciones rompen el control de flujo y, tomadas a la ligera, dificultan lidiar con condiciones de 
 error. 
 
-👉 _En la vida práctica, 🥺, muchos desarrolladores simplemente ignoran las excepciones y las dejan propagar 
-hasta el nivel superior de la aplicación!_
+👉 En la vida práctica, muchos desarrolladores simplemente ignoran las excepciones y las dejan propagar 
+hasta el nivel superior de la aplicación! _Somewhere in the Rytridian Galaxy, Ultra Lord weeps 🥺_
 
 
 
