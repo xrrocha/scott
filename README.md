@@ -39,7 +39,7 @@ public String crearDepartamento(
   final Departamento departamentoGuardado;
   try {
     departamentoGuardado = 
-      repositorioDepartamento
+      repositorio
         .save(departamento);
   } catch (Exception e) {
     throw new RuntimeException("Error persistiendo nuevo departamento", e);
@@ -61,7 +61,7 @@ public String crearDepartamento(
   String localidad) 
 {
   return persistirInstancia(
-    repositorioDepartamento,
+    repositorio,
     () ->
       Departamento.builder()
         .codigo(codigo)
@@ -175,7 +175,7 @@ public String crearDepartamento(
   final Departamento departamentoGuardado;
   try {
     departamentoGuardado = 
-      repositorioDepartamento
+      repositorio
         .save(departamento);
   } catch (Exception e) {
     throw new RuntimeException("Error de persistencia creando departamento", e);
@@ -208,7 +208,7 @@ public String crearEmpleado(String codigo, String nombre, Genero genero) {
   final Empleado empleadoGuardado;
   try {
     empleadoGuardado = 
-      repositorioEmpleado
+      repositorio
         .save(empleado);
   } catch (Exception e) {
     throw new RuntimeException("Error de persistencia creando empleado", e);
@@ -275,19 +275,6 @@ public String crearDepartamento(
   String nombre,
   String localidad) 
 {
-  // Valida que el código de departamento no sea duplicado
-  final Optional<Departamento> optDepartamento;
-  try {
-    optDepartamento = repositorioDepartamento
-      .findByCodigo(codigo);
-  } catch (Exception e) {
-    throw new RuntimeException("Error recuperando departamento por código", e);
-  }
-  optDepartamento.ifPresent(d -> {
-    String mensaje = "Ya existe un departamento con codigo %s: %s!".formatted(codigo, d.getNombre());
-    throw new IllegalArgumentException(mensaje);
-  });
-  
   // Construye y valida departamento
   final Departamento departamento;
   try {
@@ -300,12 +287,25 @@ public String crearDepartamento(
   } catch (Exception e) {
     throw new RuntimeException("Error de validación creando departamento", e);
   }
+  
+  // Valida que el código de departamento no sea duplicado
+  final Optional<Departamento> optDepartamento;
+  try {
+    optDepartamento = repositorio
+      .findByCodigo(codigo);
+    } catch (Exception e) {
+      throw new RuntimeException("Error recuperando departamento por código", e);
+    }
+    optDepartamento.ifPresent(d -> {
+      String mensaje = "Ya existe un departamento con codigo %s: %s!".formatted(codigo, d.getNombre());
+      throw new IllegalArgumentException(mensaje);
+    });
 
   // Persiste nuevo departamento
   final Departamento departamentoGuardado;
   try {
     departamentoGuardado = 
-      repositorioDepartamento
+      repositorio
         .save(departamento);
   } catch (Exception e) {
     throw new RuntimeException("Error de persistencia creando departamento", e);
@@ -397,9 +397,9 @@ public String crearDepartamento(
   String localidad) 
 {
   return persistirInstancia(
-    repositorioDepartamento,
+    repositorio,
     detectarDuplicado(
-      repositorioDepartamento::buscarPorCodigo, 
+      repositorio::buscarPorCodigo, 
       codigo),
     () -> 
       Departamento.builder()
@@ -413,8 +413,8 @@ public String crearDepartamento(
 
 🤩 Aah, _excelente_ simplificación! 
 
-Y es segura en tipos de datos! Si, por error, escribiéramos `repositorioEmpleado` donde debiera decir 
-`repositorioDepartamento`, el compilador de Java y/o la IDE nos lo harían saber _de inmediato_.
+Y es segura en tipos de datos! Si, por error, escribiéramos `repositorio` donde debiera decir 
+`repositorio`, el compilador de Java y/o la IDE nos lo harían saber _de inmediato_.
 
 ### Capturando Recetas Repetitivas  (Toma 2)
 
