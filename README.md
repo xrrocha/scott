@@ -40,13 +40,15 @@ public String crearDepartamento(
   final Departamento departamentoGuardado;
   try {
     departamentoGuardado = 
-      repositorioDepartamento.save(departamento);
+      repositorioDepartamento
+        .save(departamento);
   } catch (Exception e) {
     throw new RuntimeException("Error persistiendo nuevo departamento", e);
   }
 
   // Retorna id generado para nuevo departamento
-  return departamentoGuardado.getId();
+  return departamentoGuardado
+    .getId();
 }
 ```
 
@@ -61,16 +63,17 @@ public String crearDepartamento(
 {
   return persistirInstancia(
     repositorioDepartamento,
-    () -> Departamento.builder()
-      .codigo(codigo)
-      .nombre(nombre)
-      .localidad(localidad)
-      .build()
+    () ->
+      Departamento.builder()
+        .codigo(codigo)
+        .nombre(nombre)
+        .localidad(localidad)
+        .build()
     ));
 }
 ```
 
-## El Modelo de Datos _scott/tiger_
+### El Modelo de Datos _scott/tiger_
 
 El modelo de datos de ejemplo esta inspirado en el esquema 
 [scott/tiger](https://www.orafaq.com/wiki/SCOTT) tradicionalmente empleado por Oracle 
@@ -133,7 +136,9 @@ public class Departamento extends Entidad {
     validarAtributos();
   }
 
-  public String relocalizar(String nuevaLocalidad) {
+  public String relocalizar(
+    String nuevaLocalidad) 
+  {
     String localidadOriginal = 
       this.localidad;
     this.localidad =
@@ -144,7 +149,7 @@ public class Departamento extends Entidad {
 }
 ```
 
-## Insertando una Nueva Instancia de Entidad (Toma 1)
+### Insertando una Nueva Instancia de Entidad (Toma 1)
 
 Para persistir una nueva instancia de `Departamento` se requeriría algo como:
 
@@ -171,7 +176,8 @@ public String crearDepartamento(
   final Departamento departamentoGuardado;
   try {
     departamentoGuardado = 
-      repositorioDepartamento.save(departamento);
+      repositorioDepartamento
+        .save(departamento);
   } catch (Exception e) {
     throw new RuntimeException("Error de persistencia creando departamento", e);
   }
@@ -203,7 +209,8 @@ public String crearEmpleado(String codigo, String nombre, Genero genero) {
   final Empleado empleadoGuardado;
   try {
     empleadoGuardado = 
-      repositorioEmpleado.save(empleado);
+      repositorioEmpleado
+        .save(empleado);
   } catch (Exception e) {
     throw new RuntimeException("Error de persistencia creando empleado", e);
   }
@@ -223,7 +230,7 @@ En los dos casos se repite el mismo patrón:
 
 Varían los detalles, pero el código (repetitivo y tedioso) tiene siempre la misma estructura.
 
-## Claves Naturales y Sintéticas
+### Claves Naturales y Sintéticas
 
 En el uso de bases de datos relacionales de hoy es frecuente reemplazar las claves primarias "naturales" (tales como 
 la _cédula_ de la persona o el _código_ del departamento) por claves primarias "sintéticas" generadas por el sistema.
@@ -258,13 +265,17 @@ requiere añadir a las entidades JPA una anotación `@Table/@UniqueConstraint`
 👉 En nuestro repositorio de ejemplo hemos establecido la simplificación de que todas las claves primarias sintéticas
 son de tipo `String` y corresponden a un _random `UUID`_ generado desde la aplicación.
 
-## Insertando una Nueva Instancia de Entidad (Toma 2)
+### Insertando una Nueva Instancia de Entidad (Toma 2)
 
 Para garantizar que no haya múltiples departamentos con el mismo código, la persistencia de una nueva instancia de 
 `Departamento` luciría ahora como:
 
 ```java
-public String crearDepartamento(String codigo, String nombre, String localidad) {
+public String crearDepartamento(
+  String codigo, 
+  String nombre,
+  String localidad) 
+{
   // Valida que el código de departamento no sea duplicado
   final Optional<Departamento> optDepartamento;
   try {
@@ -294,8 +305,9 @@ public String crearDepartamento(String codigo, String nombre, String localidad) 
   // Persiste nuevo departamento
   final Departamento departamentoGuardado;
   try {
-    departamentoGuardado = repositorioDepartamento
-      .save(departamento);
+    departamentoGuardado = 
+      repositorioDepartamento
+        .save(departamento);
   } catch (Exception e) {
     throw new RuntimeException("Error de persistencia creando departamento", e);
   }
@@ -313,7 +325,7 @@ Esto es repetitivo, tedioso y _propenso al error_!
 👉 **Una de las principales fuentes de _bugs_ en el desarrollo de aplicaciones son los errores en la transcripción de 
 recetas repetitivas como esta**.
 
-## Capturando Recetas Repetitivas  (Toma 1)
+### Capturando Recetas Repetitivas  (Toma 1)
 
 Qué partes varían de caso en caso en la receta repetitiva que nos ocupa? 
 
@@ -330,9 +342,7 @@ Para formular las partes móviles de forma reutilizable Java provee dos poderoso
 - Tipos de datos genéricos y 
 - Lambdas
 
-Dado que todas las clases que nos atañen extienden la superclase `Entidad` podemos definir para nuestro método un 
-tipo de datos genérico `<E extends Entidad>`. Por extensión, el tipo del repositorio sería 
-`<R extends JpaRepository<E, String>>`.
+Para las clases de entidad se puede definir un tipo genérico `E`.
 
 La porción de lógica que construye en memoria una nueva instancia de entidad es una lambda de tipo `Supplier<E>`.
 
@@ -342,7 +352,8 @@ natural sería un ``Supplier<Optional<E>>``.
 Veamos:
 
 ```java
-public static<E, I> I persistirInstancia(
+public static<E, I> I 
+persistirInstancia(
   JpaRepository<E, I> repositorio,
   Function<E, I> clavePrimaria,
   Consumer<E> validacion,
@@ -357,8 +368,7 @@ public static<E, I> I persistirInstancia(
 
   if(validacion != null) {
     try {
-      validacion
-        .accept(entidad);
+      validacion.accept(entidad);
     } catch(ExcepcionServicio e){
         throw e;
     } catch(Exception e){
@@ -368,8 +378,8 @@ public static<E, I> I persistirInstancia(
 
   final E entidadGuardada;
   try {
-    entidadGuardada = 
-      repositorio.save(entidad);
+    entidadGuardada = repositorio
+      .save(entidad);
   } catch(Exception e) {
     throw new ExcepcionServicio("Error persistiendo nueva instancia",e);
   }
@@ -389,7 +399,9 @@ public String crearDepartamento(
 {
   return persistirInstancia(
     repositorioDepartamento,
-    detectarDuplicado(repositorioDepartamento::buscarPorCodigo, codigo),
+    detectarDuplicado(
+      repositorioDepartamento::buscarPorCodigo, 
+      codigo),
     () -> 
       Departamento.builder()
         .codigo(codigo)
@@ -405,7 +417,7 @@ public String crearDepartamento(
 Y es segura en tipos de datos! Si, por error, escribiéramos `repositorioEmpleado` donde debiera decir 
 `repositorioDepartamento`, el compilador de Java y/o la IDE nos lo harían saber _de inmediato_.
 
-## Capturando Recetas Repetitivas  (Toma 2)
+### Capturando Recetas Repetitivas  (Toma 2)
 
 Nuestro método DSL `persistirInstancia` nos ha traído grandes beneficios ya desde su primera encarnación. 
 
