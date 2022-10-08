@@ -230,12 +230,12 @@ CREATE TABLE empleado (
 );
 ```
 
-👉 En nuestro repositorio de ejemplo hemos establecido la simplificación de que todas las claves primarias sintéticas 
-son de tipo `String` y corresponden a un _random `UUID`_ generado desde la aplicación.
-
 Para impedir que se añadan nuevas instancias con valores duplicados de clave natural es necesario verificar, al 
 crear una nueva instancia de la entidad, que no exista ya en su tabla una fila con el mismo valor. Así mismo, se 
 requiere añadir a las entidades JPA una anotación `@Table/@UniqueConstraint`
+
+👉 En nuestro repositorio de ejemplo hemos establecido la simplificación de que todas las claves primarias sintéticas
+son de tipo `String` y corresponden a un _random `UUID`_ generado desde la aplicación.
 
 ## Insertando una Nueva Instancia de Entidad (Toma 2)
 
@@ -244,40 +244,40 @@ Para garantizar que no haya múltiples departamentos con el mismo código, la pe
 
 ```java
 public String crearDepartamento(String codigo, String nombre, String localidad) {
-    // Valida que el código de departamento no sea duplicado
-    final Optional<Departamento> optDepartamento;
-    try {
-        optDepartamento = repositorioDepartamento.findByCodigo(codigo);
-    } catch (Exception e) {
-        throw new RuntimeException("Error recuperando departamento por código", e);
-    }
-    optDepartamento.ifPresent(d -> {
-        String mensaje = "Ya existe un departamento con codigo %s: %s!".formatted(codigo, d.getNombre());
-        throw new IllegalArgumentException(mensaje);
-    });
-    
-    // Construye y valida instancia de departamento
-    final Departamento departamento;
-    try {
-        departamento = Departamento.builder()
-                .codigo(codigo)
-                .nombre(nombre)
-                .localidad(localidad)
-                .build();
-    } catch (Exception e) {
-        throw new RuntimeException("Error de validación creando departamento", e);
-    }
+  // Valida que el código de departamento no sea duplicado
+  final Optional<Departamento> optDepartamento;
+  try {
+    optDepartamento = repositorioDepartamento.findByCodigo(codigo);
+  } catch (Exception e) {
+    throw new RuntimeException("Error recuperando departamento por código", e);
+  }
+  optDepartamento.ifPresent(d -> {
+    String mensaje = "Ya existe un departamento con codigo %s: %s!".formatted(codigo, d.getNombre());
+    throw new IllegalArgumentException(mensaje);
+  });
+  
+  // Construye y valida instancia de departamento
+  final Departamento departamento;
+  try {
+    departamento = Departamento.builder()
+        .codigo(codigo)
+        .nombre(nombre)
+        .localidad(localidad)
+        .build();
+  } catch (Exception e) {
+    throw new RuntimeException("Error de validación creando departamento", e);
+  }
 
-    // Persiste nuevo departamento
-    final Departamento departamentoGuardado;
-    try {
-        departamentoGuardado = repositorioDepartamento.save(departamento);
-    } catch (Exception e) {
-        throw new RuntimeException("Error de persistencia creando departamento", e);
-    }
+  // Persiste nuevo departamento
+  final Departamento departamentoGuardado;
+  try {
+    departamentoGuardado = repositorioDepartamento.save(departamento);
+  } catch (Exception e) {
+    throw new RuntimeException("Error de persistencia creando departamento", e);
+  }
 
-    // Retorna id generado para nuevo departamento
-    return departamentoGuardado.getId();
+  // Retorna id generado para nuevo departamento
+  return departamentoGuardado.getId();
 }
 ```
 
@@ -319,39 +319,39 @@ Veamos:
 ```java
 public <E extends Entidad, R extends JpaRepository<E, String>> 
 String persistirInstancia(
-        R repositorio,
-        Supplier<Optional<E>> recuperarPorClaveNatural,
-        Supplier<E> crearInstancia
+    R repositorio,
+    Supplier<Optional<E>> recuperarPorClaveNatural,
+    Supplier<E> crearInstancia
 ) {
-    // Construye y valida instancia de entidad (fail fast)
-    final E entidad;
-    try {
-        entidad = crearInstancia.get();
-    } catch (Exception e) {
-        throw new RuntimeException("Error creando instancia de entidad en memoria", e);
-    }
+  // Construye y valida instancia de entidad (fail fast)
+  final E entidad;
+  try {
+    entidad = crearInstancia.get();
+  } catch (Exception e) {
+    throw new RuntimeException("Error creando instancia de entidad en memoria", e);
+  }
 
-    // Valida que la clave primaria natural no sea duplicada
-    final Optional<E> optEntidad;
-    try {
-        optEntidad = recuperarPorClaveNatural.get();
-    } catch (Exception e) {
-        throw new RuntimeException("Error recuperando entidad por clave primaria natural", e);
-    }
-    optEntidad.ifPresent(d -> {
-        throw new IllegalArgumentException("Ya existe una entidad con la misma clave natural");
-    });
+  // Valida que la clave primaria natural no sea duplicada
+  final Optional<E> optEntidad;
+  try {
+    optEntidad = recuperarPorClaveNatural.get();
+  } catch (Exception e) {
+    throw new RuntimeException("Error recuperando entidad por clave primaria natural", e);
+  }
+  optEntidad.ifPresent(d -> {
+    throw new IllegalArgumentException("Ya existe una entidad con la misma clave natural");
+  });
 
-    // Persiste nueva entidad
-    final E entidadGuardada;
-    try {
-        entidadGuardada = repositorio.save(entidad);
-    } catch (Exception e) {
-        throw new RuntimeException("Error persistiendo nueva instancia", e);
-    }
+  // Persiste nueva entidad
+  final E entidadGuardada;
+  try {
+    entidadGuardada = repositorio.save(entidad);
+  } catch (Exception e) {
+    throw new RuntimeException("Error persistiendo nueva instancia", e);
+  }
 
-    // Retorna id generado para nueva entidad
-    return entidadGuardada.getId();
+  // Retorna id generado para nueva entidad
+  return entidadGuardada.getId();
 }
 ```
 
@@ -359,15 +359,15 @@ Armados con este método genérico, la creación de un nuevo departamento lucir�
 
 ```java
 public String crearDepartamento(String codigo, String nombre, String localidad) {
-    return persistirInstancia(
-        repositorioDepartamento,
-        () -> repositorioDepartamento.findByCodigo(codigo),
-        () -> Departamento.builder()
-                .codigo(codigo)
-                .nombre(nombre)
-                .localidad(localidad)
-                .build()
-    );
+  return persistirInstancia(
+    repositorioDepartamento,
+    () -> repositorioDepartamento.findByCodigo(codigo),
+    () -> Departamento.builder()
+        .codigo(codigo)
+        .nombre(nombre)
+        .localidad(localidad)
+        .build()
+  );
 }
 ```
 
