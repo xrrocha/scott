@@ -19,18 +19,6 @@ la base de datos como:
 // Retorna el id generado para una nueva instancia de departamento persistida exitosamente
 // o causa una excepción en cada posible escenario de falla
 public String crearDepartamento(String codigo, String nombre, String localidad) {
-    // Valida que el código de departamento no sea duplicado
-    final Optional<Departamento> optDepartamento;
-    try {
-        optDepartamento = repositorioDepartamento.findByCodigo(codigo);
-    } catch (Exception e) {
-        throw new RuntimeException("Error recuperando departamento por código", e);
-    }
-    optDepartamento.ifPresent(d -> {
-        String mensaje = "Ya existe un departamento con codigo %s: %s!".formatted(codigo, d.getNombre());
-        throw new IllegalArgumentException(mensaje);
-    });
-
     // Construye y valida instancia de departamento
     final Departamento departamento;
     try {
@@ -59,19 +47,18 @@ public String crearDepartamento(String codigo, String nombre, String localidad) 
 Empleando el DSL implementado en este repositorio, la misma funcionalidad luciría como:
 
 ```java
-// Retorna el id generado para una nueva instancia de departamento persistida exitosamente
-// o un objeto de falla que contiene información de qué problema ocurrió al intentar persistir
-public Either<Falla, Id> crearDepartamento(String codigo, String nombre, String localidad) {
-  return nuevaInstanciaEntidad(
-      contexto("Crear departamento " + nombre, repositorioDepartamento),
-      detectarDuplicado(repositorioDepartamento::buscarPorCodigo, codigo),
-      crearInstancia(() ->
-          Departamento.builder()
-              .codigo(codigo)
-              .nombre(nombre)
-              .localidad(localidad)
-              .build()
-      ));
+// Retorna id generado para nueva instancia de departamento
+public String crearDepartamento(String codigo, 
+                                String nombre, 
+                                String localidad) {
+  return persistirInstancia(
+    repositorioDepartamento,
+    () -> Departamento.builder()
+      .codigo(codigo)
+      .nombre(nombre)
+      .localidad(localidad)
+      .build()
+    ));
 }
 ```
 
@@ -94,50 +81,53 @@ así como del soporte brindado por la superclase
 
 ```java
 @Entity
-@Table(name = "departamento", uniqueConstraints = {
-        @UniqueConstraint(name = "dept_uk_codigo", columnNames = {"codigo"})})
+@Table(name = "departamento", 
+  uniqueConstraints = { @UniqueConstraint(name = "dept_uk_codigo",  
+    columnNames = {"codigo"})})
 @Getter
 @ToString(onlyExplicitlyIncluded = true)
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Departamento extends Entidad {
-    @ToString.Include
-    @NotNull(message = "El código del departamento debe ser especificado")
-    @Pattern(regexp = "^[0-9]{2}$", message = "Código de departamento inválido; debe constar de dos dígitos")
-    @Basic(optional = false)
-    @Column(name = "codigo", nullable = false, length = 2)
-    private String codigo;
+  @ToString.Include
+  @NotNull(message = "El código del departamento debe ser especificado")
+  @Pattern(regexp = "^[0-9]{2}$", message = "Código de departamento inválido; debe constar de dos dígitos")
+  @Basic(optional = false)
+  @Column(name = "codigo", nullable = false, length = 2)
+  private String codigo;
 
-    @ToString.Include
-    @NotNull(message = "El nombre del departamento debe ser especificado")
-    @Pattern(regexp = "^\\p{IsLatin}{2,16}$", message = "Nombre de departamento inválido; solo puede contener letras")
-    @Basic(optional = false)
-    @Column(name = "nombre", nullable = false, length = 16)
-    private String nombre;
+  @ToString.Include
+  @NotNull(message = "El nombre del departamento debe ser especificado")
+  @Pattern(regexp = "^\\p{IsLatin}{2,16}$", message = "Nombre de departamento inválido; solo puede contener letras")
+  @Basic(optional = false)
+  @Column(name = "nombre", nullable = false, length = 16)
+  private String nombre;
 
-    @ToString.Include
-    @NotNull(message = "La localidad del departamento debe ser especificada")
-    @Pattern(regexp = "^\\p{IsLatin}{2,16}$", message = "Localidad de departamento inválida; solo puede contener letras")
-    @Basic(optional = false)
-    @Column(name = "localidad", nullable = false, length = 16)
-    private String localidad;
+  @ToString.Include
+  @NotNull(message = "La localidad del departamento debe ser especificada")
+  @Pattern(regexp = "^\\p{IsLatin}{2,16}$", message = "Localidad de departamento inválida; solo puede contener letras")
+  @Basic(optional = false)
+  @Column(name = "localidad", nullable = false, length = 16)
+  private String localidad;
 
-    @OneToMany(mappedBy = "departamento", cascade = CascadeType.ALL)
-    private final Set<Empleado> empleados = new HashSet<>();
+  @OneToMany(mappedBy = "departamento", cascade = CascadeType.ALL)
+  private final Set<Empleado> empleados = new HashSet<>();
 
-    @Builder
-    public Departamento(String codigo, String nombre, String localidad) {
-        this.codigo = codigo;
-        this.nombre = nombre;
-        this.localidad = localidad;
-        validarAtributos();
-    }
+  @Builder
+  public Departamento(String codigo, 
+                      String nombre, 
+                      String localidad) {
+    this.codigo = codigo;
+    this.nombre = nombre;
+    this.localidad = localidad;
+    validarAtributos();
+  }
 
-    public String relocalizar(String nuevaLocalidad) {
-        String localidadOriginal = this.localidad;
-        this.localidad = nuevaLocalidad;
-        validarAtributos();
-        return localidadOriginal;
-    }
+  public String relocalizar(String nuevaLocalidad) {
+    String localidadOriginal = this.localidad;
+    this.localidad = nuevaLocalidad;
+    validarAtributos();
+    return localidadOriginal;
+  }
 }
 ```
 
@@ -146,15 +136,17 @@ public class Departamento extends Entidad {
 Para persistir una nueva instancia de `Departamento` se requeriría algo como:
 
 ```java
-public String crearDepartamento(String codigo, String nombre, String localidad) {
+public String crearDepartamento(String codigo, 
+                                String nombre,
+                                String localidad) {
   // Construye y valida instancia de departamento
   final Departamento departamento;
   try {
     departamento = Departamento.builder()
-        .codigo(codigo)
-        .nombre(nombre)
-        .localidad(localidad)
-        .build();
+      .codigo(codigo)
+      .nombre(nombre)
+      .localidad(localidad)
+      .build();
   } catch (Exception e) {
     throw new RuntimeException("Error de validación creando departamento", e);
   }
@@ -162,7 +154,8 @@ public String crearDepartamento(String codigo, String nombre, String localidad) 
   // Persiste nuevo departamento
   final Departamento departamentoGuardado;
   try {
-    departamentoGuardado = repositorioDepartamento.save(departamento);
+    departamentoGuardado = 
+        repositorioDepartamento.save(departamento);
   } catch (Exception e) {
     throw new RuntimeException("Error de persistencia creando departamento", e);
   }
@@ -180,10 +173,10 @@ public String crearEmpleado(String codigo, String nombre, Genero genero) {
   final Empleado empleado;
   try {
     empleado = Empleado.builder()
-        .codigo(codigo)
-        .nombre(nombre)
-        .genero(genero)
-        .build();
+      .codigo(codigo)
+      .nombre(nombre)
+      .genero(genero)
+      .build();
   } catch (Exception e) {
     throw new RuntimeException("Error de validación creando empleado", e);
   }
@@ -191,7 +184,8 @@ public String crearEmpleado(String codigo, String nombre, Genero genero) {
   // Persiste nuevo Empleado
   final Empleado empleadoGuardado;
   try {
-    empleadoGuardado = repositorioEmpleado.save(empleado);
+    empleadoGuardado = 
+      repositorioEmpleado.save(empleado);
   } catch (Exception e) {
     throw new RuntimeException("Error de persistencia creando empleado", e);
   }
@@ -247,7 +241,8 @@ public String crearDepartamento(String codigo, String nombre, String localidad) 
   // Valida que el código de departamento no sea duplicado
   final Optional<Departamento> optDepartamento;
   try {
-    optDepartamento = repositorioDepartamento.findByCodigo(codigo);
+    optDepartamento = 
+      repositorioDepartamento.findByCodigo(codigo);
   } catch (Exception e) {
     throw new RuntimeException("Error recuperando departamento por código", e);
   }
@@ -317,57 +312,57 @@ natural sería un ``Supplier<Optional<E>>``.
 Veamos:
 
 ```java
-public <E extends Entidad, R extends JpaRepository<E, String>> 
-String persistirInstancia(
-  R repositorio,
-  Supplier<Optional<E>> recuperarPorClaveNatural,
+public static<E, I> I persistirInstancia(
+  JpaRepository<E, I> repositorio,
+  Function<E, I> clavePrimaria,
+  Consumer<E> validacion,
   Supplier<E> crearInstancia
 ) {
-  // Construye y valida instancia de entidad (fail fast)
   final E entidad;
-  try {
+  try{
     entidad = crearInstancia.get();
-  } catch (Exception e) {
-    throw new RuntimeException("Error creando instancia de entidad en memoria", e);
+  } catch(Exception e){
+    throw new ExcepcionServicio("Error creando instancia de entidad en memoria",e);
   }
 
-  // Valida que la clave primaria natural no sea duplicada
-  final Optional<E> optEntidad;
-  try {
-    optEntidad = recuperarPorClaveNatural.get();
-  } catch (Exception e) {
-    throw new RuntimeException("Error recuperando entidad por clave primaria natural", e);
+  if(validacion != null) {
+    try{
+      validacion.accept(entidad);
+    } catch(ExcepcionServicio e){
+        throw e;
+    } catch(Exception e){
+      throw new ExcepcionServicio("Error de validación de entidad",e);
+    }
   }
-  optEntidad.ifPresent(d -> {
-    throw new IllegalArgumentException("Ya existe una entidad con la misma clave natural");
-  });
 
-  // Persiste nueva entidad
   final E entidadGuardada;
   try {
     entidadGuardada = repositorio.save(entidad);
-  } catch (Exception e) {
-    throw new RuntimeException("Error persistiendo nueva instancia", e);
+  } catch(Exception e) {
+    throw new ExcepcionServicio("Error persistiendo nueva instancia",e);
   }
 
-  // Retorna id generado para nueva entidad
-  return entidadGuardada.getId();
+  return clavePrimaria.apply(entidadGuardada);
 }
 ```
 
 Armados con este método genérico, la creación de un nuevo departamento luciría como:
 
 ```java
-public String crearDepartamento(String codigo, String nombre, String localidad) {
+public String crearDepartamento(
+  String codigo, 
+  String nombre, 
+  String localidad) 
+{
   return persistirInstancia(
     repositorioDepartamento,
-    () -> repositorioDepartamento.findByCodigo(codigo),
+    detectarDuplicado(repositorioDepartamento::buscarPorCodigo, codigo),
     () -> Departamento.builder()
-        .codigo(codigo)
-        .nombre(nombre)
-        .localidad(localidad)
-        .build()
-  );
+      .codigo(codigo)
+      .nombre(nombre)
+      .localidad(localidad)
+      .build()
+  ));
 }
 ```
 
