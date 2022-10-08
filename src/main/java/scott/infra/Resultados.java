@@ -7,18 +7,16 @@ import java.util.List;
 
 public interface Resultados {
 
-    interface Identificado {
-        String id();
-    }
-
-    record Id(String id) implements Identificado {
-    }
-
     interface Falla {
         String mensaje();
+
+        Throwable error();
     }
 
-    record FallaGeneral(String mensaje) implements Falla {
+    record FallaGeneral(String mensaje, Throwable error) implements Falla {
+        public FallaGeneral(String mensaje) {
+            this(mensaje, null);
+        }
     }
 
     record FallaValidacion(String contexto, List<ValorInvalido> erroresValidacion, String mensaje) implements Falla {
@@ -26,6 +24,12 @@ public interface Resultados {
             this(contexto,
                     errorValidacion.valoresInvalidos(),
                     "%s: %s".formatted(contexto, errorValidacion.getMessage()));
+        }
+
+        @Override
+        public Throwable error() {
+            // TODO Retornar error de validación original
+            return null;
         }
     }
 

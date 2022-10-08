@@ -1,9 +1,6 @@
 package scott.dominio;
 
-import io.vavr.control.Either;
 import org.springframework.beans.factory.annotation.Autowired;
-import scott.infra.Resultados.Falla;
-import scott.infra.Resultados.Id;
 
 import java.util.Optional;
 

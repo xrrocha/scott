@@ -3,22 +3,21 @@ package scott.dominio;
 import io.vavr.control.Either;
 import org.springframework.stereotype.Service;
 import scott.infra.Resultados.Falla;
-import scott.infra.Resultados.Id;
 import scott.infra.jpa.ServicioDSL;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
 
 public interface ServicioEmpleado {
-    Either<Falla, Id> crearEmpleado(String codigo,
-                                    String nombre,
-                                    Genero genero,
-                                    String cargo,
-                                    String idSupervisor,
-                                    LocalDate fechaContratacion,
-                                    BigDecimal salario,
-                                    BigDecimal comision,
-                                    String idDepartamento);
+    Either<Falla, String> crearEmpleado(String codigo,
+                                        String nombre,
+                                        Genero genero,
+                                        String cargo,
+                                        String idSupervisor,
+                                        LocalDate fechaContratacion,
+                                        BigDecimal salario,
+                                        BigDecimal comision,
+                                        String idDepartamento);
 
     Either<Falla, Void> reasignar(String idEmpleado,
                                   String idDepartamento,
@@ -30,36 +29,31 @@ public interface ServicioEmpleado {
     @Service
     class Impl extends ServicioDSL implements ServicioEmpleado {
         @Override
-        public Either<Falla, Id> crearEmpleado(String codigo,
-                                               String nombre,
-                                               Genero genero,
-                                               String cargo,
-                                               String idSupervisor,
-                                               LocalDate fechaContratacion,
-                                               BigDecimal salario,
-                                               BigDecimal comision,
-                                               String idDepartamento) {
-            return conIdOptAccion(
-                    contexto("Crear empleado %s".formatted(nombre)),
-                    conId(repositorioDepartamento, idDepartamento),
-                    conId(repositorioEmpleado, idSupervisor),
-                    (departamento, supervisor) -> nuevaInstanciaEntidad(
-                            contexto("Crear empleado %s en %s".formatted(nombre, departamento.getNombre()),
-                                    repositorioEmpleado),
+        public Either<Falla, String> crearEmpleado(String codigo,
+                                                   String nombre,
+                                                   Genero genero,
+                                                   String cargo,
+                                                   String idSupervisor,
+                                                   LocalDate fechaContratacion,
+                                                   BigDecimal salario,
+                                                   BigDecimal comision,
+                                                   String idDepartamento) {
+            return responderCon(() ->
+                    persistirInstancia(
+                            repositorioEmpleado,
                             detectarDuplicado(repositorioEmpleado::buscarPorCodigo, codigo),
-                            crearInstancia(() ->
-                                    Empleado.builder()
-                                            .codigo(codigo)
-                                            .nombre(nombre)
-                                            .genero(genero)
-                                            .cargo(cargo)
-                                            .supervisor(supervisor.orElse(null))
-                                            .fechaContratacion(fechaContratacion)
-                                            .salario(salario)
-                                            .comision(comision)
-                                            .departamento(departamento)
-                                            .build()
-                            )));
+                            () -> Empleado.builder()
+                                    .codigo(codigo)
+                                    .nombre(nombre)
+                                    .genero(genero)
+                                    .cargo(cargo)
+                                    .supervisor(leerOpcional(repositorioEmpleado, idSupervisor))
+                                    .fechaContratacion(fechaContratacion)
+                                    .salario(salario)
+                                    .comision(comision)
+                                    .departamento(leer(repositorioDepartamento, idDepartamento))
+                                    .build()
+                    ));
         }
 
         @Override
@@ -69,20 +63,14 @@ public interface ServicioEmpleado {
                                              String idSupervisor,
                                              BigDecimal salario,
                                              BigDecimal comision) {
-            return conIdsAccion(
-                    contexto("Reasignar empleado %s".formatted(idEmpleado)),
-                    conId(repositorioDepartamento, idDepartamento),
-                    conId(repositorioEmpleado, idSupervisor),
-                    (departamento, supervisor) -> actualizar(
-                            contexto("Reasignar empleado %s".formatted(idEmpleado), repositorioEmpleado),
-                            recuperarPor(repositorioEmpleado::buscarPorId, idEmpleado),
-                            actualizarCon(empleado ->
-                                    empleado.reasignar(
-                                            departamento,
-                                            cargo,
-                                            supervisor,
-                                            salario,
-                                            comision))));
+            return ejecutar(() ->
+                    actualizar(idEmpleado, repositorioEmpleado, empleado ->
+                            empleado.reasignar(
+                                    leer(repositorioDepartamento, idDepartamento),
+                                    cargo,
+                                    leerOpcional(repositorioEmpleado, idSupervisor),
+                                    salario,
+                                    comision)));
         }
 
         private final RepositorioEmpleado repositorioEmpleado;

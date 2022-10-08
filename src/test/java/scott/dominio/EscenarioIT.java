@@ -24,19 +24,19 @@ public class EscenarioIT extends PruebaIntegracion {
                                 "10",
                                 "Contabilidad",
                                 "Quito")
-                        .get().id();
+                        .get();
         final var idInvestigacion =
                 servicioDepartamento.crearDepartamento(
                                 "20",
                                 "Investigación",
                                 "Sunrise")
-                        .get().id();
+                        .get();
         final var idVentas =
                 servicioDepartamento.crearDepartamento(
                                 "30",
                                 "Ventas",
                                 "Bogota")
-                        .get().id();
+                        .get();
 
         final var idKing = servicioEmpleado.crearEmpleado(
                         "7839",
@@ -48,7 +48,7 @@ public class EscenarioIT extends PruebaIntegracion {
                         new BigDecimal(15000),
                         null,
                         idContabilidad)
-                .get().id();
+                .get();
 
         final var idJones = servicioEmpleado.crearEmpleado(
                         "7566",
@@ -60,7 +60,7 @@ public class EscenarioIT extends PruebaIntegracion {
                         new BigDecimal(14875),
                         null,
                         idInvestigacion)
-                .get().id();
+                .get();
 
         final var idBlake = servicioEmpleado.crearEmpleado(
                         "7698",
@@ -72,7 +72,7 @@ public class EscenarioIT extends PruebaIntegracion {
                         new BigDecimal(14250),
                         null,
                         idVentas)
-                .get().id();
+                .get();
 
         final var idAllen = servicioEmpleado.crearEmpleado(
                         "7499",
@@ -84,7 +84,7 @@ public class EscenarioIT extends PruebaIntegracion {
                         new BigDecimal(8000),
                         new BigDecimal(1500),
                         idVentas)
-                .get().id();
+                .get();
     }
 
     private final ServicioDepartamento servicioDepartamento;
