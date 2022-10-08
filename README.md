@@ -386,6 +386,17 @@ persistirInstancia(
   return clavePrimaria
     .apply(entidadGuardada);
 }
+public static <E, C>
+Consumer<E> detectarDuplicado(
+  Function<C, Optional<E>> extractor, 
+  C valorClave) 
+{
+  return e -> extractor
+    .apply(valorClave)
+    .ifPresent(t -> {
+      throw new ExcepcionServicio("Ya existe una instancia con la misma clave: %s".formatted(valorClave));
+    });
+}
 ```
 
 Armados con este método genérico, la creación de un nuevo departamento luciría como:
