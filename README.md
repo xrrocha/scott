@@ -43,7 +43,7 @@ public String crearDepartamento(String codigo, String nombre, String localidad) 
 }
 ```
 
-Empleando el DSL implementado en este repositorio, la misma funcionalidad luciría como:
+Empleando el DSL implementado en este repositorio, la misma funcionalidad se implementaría sucintamente como:
 
 ```java
 // Retorna id generado para nuevo departamento
@@ -51,10 +51,10 @@ public String crearDepartamento(String codigo, String nombre, String localidad) 
     return persistirInstancia(
         repositorio,
         () -> Departamento.builder()
-                .codigo(codigo)
-                .nombre(nombre)
-                .localidad(localidad)
-                .build()
+                  .codigo(codigo)
+                  .nombre(nombre)
+                  .localidad(localidad)
+                  .build()
     ));
 }
 ```
@@ -181,8 +181,7 @@ public String crearEmpleado(String codigo, String nombre, Genero genero) {
     }
 
     // Retorna id generado para nuevo empleado
-    return empleadoGuardado
-        .getId();
+    return empleadoGuardado.getId();
 }
 ```
 
@@ -208,16 +207,18 @@ CREATE TABLE departamento (
 );
 CREATE TABLE empleado (
     id              VARCHAR(32) NOT NULL DEFAULT gen_random_uuid() PRIMARY KEY,
-    codigoVARCHAR(16) NOT NULL UNIQUE,
+    codigo          VARCHAR(16) NOT NULL UNIQUE,
     nombre          VARCHAR(24) NOT NULL,
     id_departamento INTEGER     NOT NULL REFERENCES departamento (id),
     id_supervisor   VARCHAR(32) REFERENCES empleado (id)
 );
 ```
 
-Para impedir que se añadan nuevas instancias con valores duplicados de clave natural es necesario verificar, al 
-crear una nueva instancia de la entidad, que no exista ya en su tabla una fila con el mismo valor. Así mismo, se 
-requiere añadir a las entidades JPA una anotación `@Table/@UniqueConstraint`
+Para impedir que se añadan nuevas instancias con valores duplicados de clave natural:
+
+- Se añade una restricción `UNIQUE` en la(s) columna(s) de la tabla
+- Se añade una anotación `@Table/@UniqueConstraint` a la entidad JPA 
+- Se verifica en la aplicación Spring que no exista ya en la tabla una fila con el mismo valor
 
 👉 En nuestro repositorio de ejemplo hemos establecido la simplificación de que todas las claves primarias sintéticas
 son de tipo `String` y corresponden a un _random `UUID`_ generado desde la aplicación.
@@ -241,6 +242,7 @@ public String crearDepartamento(String codigo, String nombre, String localidad) 
         throw new RuntimeException("Error de validación creando departamento", e);
     }
     
+    // *** La validación de unicidad ocurre aquí ***
     // Valida que el código de departamento no sea duplicado
     final Optional<Departamento> optDepartamento;
     try {
@@ -311,16 +313,14 @@ I persistirInstancia(
     try {
         entidad = crearInstancia.get();
     } catch(Exception e) {
-        throw new ExcepcionServicio("Error creando instancia de entidad en memoria",e);
+        throw new ExcepcionDSL("Error creando instancia de entidad en memoria",e);
     }
 
     if (validacion != null) {
         try {
             validacion.accept(entidad);
-        } catch(ExcepcionServicio e) {
-                throw e;
         } catch(Exception e) {
-            throw new ExcepcionServicio("Error de validación de entidad",e);
+            throw new ExcepcionDSL("Error de validación de entidad",e);
         }
     }
 
@@ -328,7 +328,7 @@ I persistirInstancia(
     try {
         entidadGuardada = repositorio.save(entidad);
     } catch(Exception e) {
-        throw new ExcepcionServicio("Error persistiendo nueva instancia",e);
+        throw new ExcepcionDSL("Error persistiendo nueva instancia",e);
     }
 
     return clavePrimaria.apply(entidadGuardada);
@@ -336,7 +336,7 @@ I persistirInstancia(
 
 public static <E, C> Consumer<E> detectarDuplicado(Function<C, Optional<E>> extractor, C valorClave) {
     return e -> extractor.apply(valorClave).ifPresent(t -> {
-        throw new ExcepcionServicio("Ya existe una instancia con la misma clave: %s".formatted(valorClave));
+        throw new ExcepcionDSL("Ya existe una instancia con la misma clave: %s".formatted(valorClave));
     });
 }
 ```
@@ -364,7 +364,7 @@ Y es segura en tipos de datos! Si, por error, escribiéramos `repositorio` donde
 
 ### Reflexiones Acerca del Estilo del DSL
 
-Como todo en la vida, nuestro método DSL es, en su forma actual, imperfecto:
+Como es natural, nuestro método DSL es, en su forma inicial, imperfecto:
 
 - No soluciona _todos_ nuestros problemas
 - Nos trae _nuevos_ problemas causados por ella misma
@@ -394,7 +394,9 @@ La programación funcional ofrece también una manera de ocuparse de las condici
 ruptura del flujo natural del programa: el tipo de datos `Either`
 
 La librería funcional [varv](https://vavr.io) provee una implementación conveniente del tipo de datos funcional 
-`Either<L, R>` para Java. Una instancia de `Either` puede contener:
+`Either<L, R>` para Java. 
+
+Una instancia de `Either` contiene uno de dos posibles valores:
 
 - Un valor útil (`R`, por _right_) si la computación que le dió origen completó exitosamente, o
 - Un valor de error (`L`, por _left_) si la computación terminó anormalmente
@@ -402,8 +404,8 @@ La librería funcional [varv](https://vavr.io) provee una implementación conven
 👉 Que el valor exitoso de `Either` esté a la derecha y no a la izquierda puede resultar contra-intuitivo a algunos
 pero es, simplemente, una convención (originalmente establecida por el lenguaje Haskell).
 
-Lo interesante del uso de este tipo de datos es que, cuando todos los métodos/funciones coinciden en retornar `Either`,
-es posible encadenarlos en _pipelines_ de transformación que parecerían ocuparse tan solo del "happy path" del código!
+Lo interesante del uso de este tipo de datos es que, cuando todos los métodos coinciden en retornar `Either`, es 
+posible encadenarlos en _pipelines_ de transformación que parecerían no ocuparse de posibles errores!
 
 Es fácil convertir una lambda que retorna `T` (y que puede fallar) en un `Either<RuntimeException, T>` tal que la
 excepción retornada en el lado izquierdo contenga un mensaje apropiado para el contexto de ejecución:
@@ -418,10 +420,10 @@ public static <T> Either<RuntimeException, T> eitherCatch(String contexto, Check
 }
 ```
 
-Dado este método de conversión, la lógica de persistencia de una nueva entidad luciría como:
+Dado este método de conversión, la lógica de persistencia de una nueva entidad se simplificaría como:
 
 ```java
-public static <E, I>    Either<Falla, I> persistirInstancia(
+public static <E, I> Either<Falla, I> persistirInstancia(
     JpaRepository<E, I> repositorio,
     CheckedFunction1<E, I> clavePrimaria,
     CheckedConsumer<E>  validacion,
@@ -437,4 +439,10 @@ public static <E, I>    Either<Falla, I> persistirInstancia(
 }
 ```
 
+Es de suma importancia notar que cuando `Either` falla, la línea de transformación se interrumpe inmediatamente! Por 
+esta razón se dice que el lado izquierdo de `Either` causa un _cortocircuito_.
+
+Esta es la razón por la cual es posible concatenar las acciones sin (aparentemente) ocuparse de los errores. En el 
+código anterior, el texto descriptivo de cada paso de la línea de transformación se utiliza como contexto para 
+generar el mensaje de error apropiado para toda posible excepción.
 
