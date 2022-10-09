@@ -296,7 +296,8 @@ Para las clases de entidad se puede definir un tipo genérico `E`.
 La porción de lógica que construye en memoria una nueva instancia de entidad es una lambda de tipo `Supplier<E>`.
 
 La porción de lógica que valida la nueva instancia de entidad en memoria antes de persistirla (por ejemplo, para
-validar que no exista previamente un valor de clave natural) sería un `Consumer<E>` que puede fallar con una excepción.
+validar que no exista previamente un valor de clave natural) sería un `Consumer<E>` opcional que puede fallar con una 
+excepción.
 
 Veamos:
 
@@ -386,7 +387,7 @@ y, tomadas a la ligera, dificultan lidiar _localmente_ con las condiciones de er
 desarrolladores simplemente ignoran las excepciones y las dejan propagar hasta el nivel superior de la aplicación! 
 _Somewhere in the Rytridian Galaxy, Ultra Lord weeps 🥺_
 
-### El Tipo de Datos `Either`
+### El Tipo de Datos `Either` al Rescate!
 
 La programación funcional ofrece también una manera de ocuparse de las condiciones de error _como datos_ y no como una 
 ruptura del flujo natural del programa: el tipo de datos `Either`
@@ -403,13 +404,15 @@ Una instancia de `Either` contiene uno de dos posibles valores:
 pero es, simplemente, una convención (originalmente establecida por el lenguaje Haskell).
 
 Lo interesante del uso de este tipo de datos es que, cuando todos los métodos coinciden en retornar `Either`, es 
-posible encadenarlos en _pipelines_ de transformación que parecerían no ocuparse de posibles errores!
+posible encadenarlos en _pipelines_ de transformación que parecerían no tener que ocuparse de posibles errores!
+Esto produce código muy legible con apariencia de _happy path_.
 
 Es fácil convertir una lambda que retorna `T` (y que puede fallar) en un `Either<RuntimeException, T>` tal que la
 excepción retornada en el lado izquierdo contenga un mensaje apropiado para el contexto de ejecución:
 
 ```java
-public static <T> Either<RuntimeException, T> eitherCatch(String contexto, CheckedFunction0<T> lambda) {
+public static <T> 
+Either<RuntimeException, T> eitherCatch(String contexto, CheckedFunction0<T> lambda) {
     try {
         return Either.right(lambda.apply());
     } catch (Throwable t) {
@@ -422,10 +425,10 @@ Dado este método de conversión, la lógica de persistencia de una nueva entida
 
 ```java
 public static <E, I> Either<Falla, I> persistirInstancia(
-    JpaRepository<E, I> repositorio,
-    CheckedFunction1<E, I> clavePrimaria,
-    CheckedConsumer<E>  validacion,
-    CheckedFunction0<E>  crearInstancia
+    JpaRepository<E, I>     repositorio,
+    CheckedFunction1<E, I>  clavePrimaria,
+    CheckedConsumer<E>      validacion,
+    CheckedFunction0<E>     crearInstancia
 ) {
     return eitherCatch("creando instancia de entidad en memoria", crearInstancia)
         .flatMap(entidad ->
@@ -443,4 +446,3 @@ esta razón se dice que el lado izquierdo de `Either` causa un _cortocircuito_.
 Esta es la razón por la cual es posible concatenar las acciones sin (aparentemente) ocuparse de los errores. En el 
 código anterior, el texto descriptivo de cada paso de la línea de transformación se utiliza como contexto para 
 generar el mensaje de error apropiado para toda posible excepción.
-

@@ -12,6 +12,7 @@ public interface ServicioDepartamento {
 
     Either<Falla, String> relocalizar(String idDepartamento, String nuevaLocalidad);
 
+    // TODO Reimplementar métodos de servicio de departamento con Either
     @Service
     class Impl implements ServicioDepartamento {
         @Override

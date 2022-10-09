@@ -27,6 +27,7 @@ public interface ServicioEmpleado {
                                   BigDecimal salario,
                                   BigDecimal comision);
 
+    // TODO Reimplementar métodos de servicio de empleado con Either
     @Service
     class Impl implements ServicioEmpleado {
         @Override

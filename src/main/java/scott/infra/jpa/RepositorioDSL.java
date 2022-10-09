@@ -1,6 +1,8 @@
 package scott.infra.jpa;
 
+import io.vavr.CheckedConsumer;
 import io.vavr.CheckedFunction0;
+import io.vavr.CheckedFunction1;
 import io.vavr.CheckedRunnable;
 import io.vavr.control.Either;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -56,6 +58,44 @@ public class RepositorioDSL {
         });
     }
 
+    public static <T> Either<Falla, T> eitherCatch(String contexto, CheckedFunction0<T> supplier) {
+        try {
+            return Either.right(supplier.apply());
+        } catch (Exception e) {
+            return Either.left(new FallaGeneral("Error " + contexto, e));
+        } catch (Throwable t) {
+            return Either.left(new CondicionError(contexto, t));
+        }
+    }
+
+    public static <T> Either<Falla, T> eitherCatch(String contexto, T value, CheckedConsumer<T> consumer) {
+        try {
+            if (consumer != null) {
+                consumer.accept(value);
+            }
+            return Either.right(value);
+        } catch (Exception e) {
+            return Either.left(new FallaGeneral("Error " + contexto, e));
+        } catch (Throwable t) {
+            return Either.left(new CondicionError(contexto, t));
+        }
+    }
+
+    public static <E, I> Either<Falla, I> persistirInstancia(
+            JpaRepository<E, I> repositorio,
+            CheckedFunction1<E, I> clavePrimaria,
+            CheckedConsumer<E> validacion,
+            CheckedFunction0<E> crearInstancia
+    ) {
+        return eitherCatch("creando instancia de entidad en memoria", crearInstancia)
+                .flatMap(entidad ->
+                        eitherCatch("validando instancia de entidad en memoria", entidad, validacion))
+                .flatMap(entidad ->
+                        eitherCatch("persistiendo nueva instancia", () -> repositorio.save(entidad)))
+                .flatMap(entidad ->
+                        eitherCatch("recuperando clave primaria", () -> clavePrimaria.apply(entidad)));
+    }
+
     public static <E, I> I persistirInstancia(
             JpaRepository<E, I> repositorio,
             Function<E, I> clavePrimaria,
@@ -72,8 +112,6 @@ public class RepositorioDSL {
         if (validacion != null) {
             try {
                 validacion.accept(entidad);
-            } catch (ExcepcionDSL e) {
-                throw e;
             } catch (Exception e) {
                 throw new ExcepcionDSL("Error de validación de entidad", e);
             }
@@ -89,6 +127,7 @@ public class RepositorioDSL {
         return clavePrimaria.apply(entidadGuardada);
     }
 
+    // TODO Implementar actualizar mediante Either
     public static <E, I, R> void actualizar(
             I id,
             JpaRepository<E, I> repositorio,
@@ -113,6 +152,7 @@ public class RepositorioDSL {
         }
     }
 
+    // TODO Implementar actualizarRetornando mediante Either
     public static <E, I, R> R actualizarRetornando(
             I id,
             JpaRepository<E, I> repositorio,
