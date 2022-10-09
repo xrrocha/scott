@@ -366,7 +366,7 @@ Y es segura en tipos de datos! Si, por error, escribiéramos `repositorioEmplead
 Como es natural, nuestro método DSL es, en su forma inicial, imperfecto:
 
 - No soluciona _todos_ nuestros problemas
-- Nos trae _nuevos_ problemas causados por ella misma
+- Nos trae _nuevos_ problemas causados por él mismo
 
 Qué problemas nuevos nos trae? 
 
@@ -383,8 +383,8 @@ apropiadamente de ellas cuando así se requiera.
 
 👉 Algunos programadores Java no verían en esto un problema. Después de todo, las excepciones son el mecanismo estándar 
 del lenguaje para reportar o propagar condiciones de error. Sin embargo, las excepciones rompen el control de flujo
-y, tomadas a la ligera, dificultan lidiar _localmente_ con las condiciones de error. En la práctica, muchos 
-desarrolladores simplemente ignoran las excepciones y las dejan propagar hasta el nivel superior de la aplicación! 
+y, tomadas a la ligera, dificultan lidiar con las condiciones de error. En la práctica, muchos desarrolladores 
+simplemente ignoran las excepciones y las dejan propagar hasta el nivel superior de la aplicación! 
 _Somewhere in the Rytridian Galaxy, Ultra Lord weeps 🥺_
 
 ### El Tipo de Datos `Either` al Rescate!
@@ -406,6 +406,8 @@ pero es, simplemente, una convención (originalmente establecida por el lenguaje
 Lo interesante del uso de este tipo de datos es que, cuando todos los métodos coinciden en retornar `Either`, es 
 posible encadenarlos en _pipelines_ de transformación que parecerían no tener que ocuparse de posibles errores!
 Esto produce código muy legible con apariencia de _happy path_.
+
+Cómo? Primero necesitamos una forma de convertir lambdas que generan excepciones en instancias de `Either`.
 
 Es fácil convertir una lambda que retorna `T` (y que puede fallar) en un `Either<RuntimeException, T>` tal que la
 excepción retornada en el lado izquierdo contenga un mensaje apropiado para el contexto de ejecución:
