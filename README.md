@@ -124,6 +124,10 @@ public class Departamento extends Entidad {
     }
 }
 ```
+👉 Este repositorio ilustra también otros aspectos de implementación de JPA que pueden ser de interés para el lector 
+más allá del DSL. Esto incluye soporte genérico a enumeraciones, generación de identificadores desde la aplicación y 
+otros temas más...
+
 
 ### Insertando una Nueva Instancia de Entidad (Toma 1)
 
@@ -192,7 +196,7 @@ En los dos casos se repite el mismo patrón:
   de persistencia
 - Retornar la nueva clave primaria generada por el sistema
 
-Varían los detalles, pero el código (repetitivo y tedioso) tiene siempre la misma estructura.
+Varían los detalles, pero el código (repetitivo y tedioso) tiene siempre la misma estructura!
 
 ### Claves Naturales y Sintéticas
 
