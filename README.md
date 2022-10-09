@@ -508,16 +508,20 @@ persistirInstancia(
   CheckedFunction0<E> 
     crearInstancia
 ) {
-  return eitherCatch("creando instancia de entidad en memoria", 
+  return eitherCatch(
+        "creando instancia de entidad en memoria", 
         crearInstancia)
     .flatMap(entidad ->
-      eitherCatch("validando instancia de entidad en memoria", 
+      eitherCatch(
+        "validando instancia de entidad en memoria", 
         entidad, validacion))
     .flatMap(entidad ->
-      eitherCatch("persistiendo nueva instancia",  () -> 
+      eitherCatch(
+        "persistiendo nueva instancia",  () -> 
         repositorio.save(entidad)))
     .flatMap(entidad ->
-      eitherCatch("recuperando clave primaria", () ->
+      eitherCatch(
+        "recuperando clave primaria", () ->
         clavePrimaria.apply(entidad)));
 }
 ```
