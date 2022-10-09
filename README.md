@@ -427,9 +427,9 @@ public String crearDepartamento(
 Y es segura en tipos de datos! Si, por error, escribiéramos `repositorio` donde debiera decir 
 `repositorio`, el compilador de Java y/o la IDE nos lo harían saber _de inmediato_.
 
-### Reflexiones Acerca del DSL
+### Reflexiones Acerca del Estilo del DSL
 
-Como todo en la vida, nuestro método DSL es imperfecto:
+Como todo en la vida, nuestro método DSL es, en su forma actual, imperfecto:
 
 - No soluciona _todos_ nuestros problemas
 - Nos trae _nuevos_ problemas causados por ella misma
@@ -438,12 +438,13 @@ Qué problemas nuevos nos trae?
 
 Uno inmediatamente evidente es que los mensajes de error son demasiado genéricos y no proveen contexto. Donde 
 nuestra versión original solía decir `Ya existe un departamento con codigo 30: Ventas!` ahora nuestro método DSL 
-reporta un críptico `Ya existe una instancia entidad con el mismo valor de clave: 30`. Claramente, esto podría mejorar!
+reporta un críptico `Ya existe una instancia de entidad con el mismo valor de clave: 30`. Claramente, esto podría 
+mejorar!
 
 Qué problemas no soluciona?
 
 Un problema con nuestro código original es que hace uso muy liberal de las excepciones. Sería deseable que nuestro 
-DSL nos liberara de tener que lidiar continuamente con las excepciones pero también que nos permitiera ocuparnos 
+DSL nos liberara de tener que lidiar continuamente con las excepciones, pero también que nos permitiera ocuparnos 
 apropiadamente de ellas cuando así se requiera.
 
 👉 Algunos programadores Java no verían en esto un problema. Después de todo, las excepciones son el mecanismo estándar 
@@ -454,11 +455,11 @@ _Somewhere in the Rytridian Galaxy, Ultra Lord weeps 🥺_
 
 ### El Tipo de Datos `Either`
 
-La programación funcional ofrece también una manera de ocuparse de las condiciones de error como datos y no como una 
+La programación funcional ofrece también una manera de ocuparse de las condiciones de error _como datos_ y no como una 
 ruptura del flujo natural del programa: el tipo de datos `Either`
 
 La librería funcional [varv](https://vavr.io) provee una implementación conveniente del tipo de datos funcional 
-`Either<L, R>`. Una instancia de `Either` puede contener:
+`Either<L, R>` para Java. Una instancia de `Either` puede contener:
 
 - Un valor útil (`R`, por _right_) si la computación que le dió origen completó exitosamente, o
 - Un valor de error (`L`, por _left_) si la computación terminó anormalmente
@@ -466,5 +467,58 @@ La librería funcional [varv](https://vavr.io) provee una implementación conven
 👉 Que el valor exitoso de `Either` esté a la derecha y no a la izquierda puede resultar contra-intuitivo a algunos 
 pero es, simplemente, una convención (originalmente establecida por el lenguaje Haskell).
 
+Lo interesante del uso de este tipo de datos es que, cuando todos los métodos/funciones coinciden en retornar `Either`,
+es posible encadenarlos en _pipelines_ de transformación que parecerían ocuparse tan solo del "happy path" del código.
+
+Es fácil convertir una lambda que retorna `T` (y que puede fallar) en un `Either<RuntimeException, T>` tal que la 
+excepción retornada en el lado izquierdo contenga un mensaje apropiado para el contexto de ejecución:
+
+```java
+public static <T> Either<RuntimeException, T> 
+eitherCatch(
+  String contexto, 
+  CheckedFunction0<T> lambda) 
+{
+  try {
+    return Either.right(
+      lambda.apply());
+  } catch (Throwable t) {
+    var mensaje = 
+     "Error: " + contexto;
+    return Either.left(
+      new RuntimeException(
+        mensaje, t));
+  }
+}
+```
+
+Dado este método de conversión, la lógica de persistencia de una nueva entidad luciría como:
+
+```java
+public static <E, I> 
+Either<Falla, I> 
+persistirInstancia(
+  JpaRepository<E, I> 
+    repositorio,
+  CheckedFunction1<E, I> 
+    clavePrimaria,
+  CheckedConsumer<E> 
+    validacion,
+  CheckedFunction0<E> 
+    crearInstancia
+) {
+  return eitherCatch("creando instancia de entidad en memoria", 
+        crearInstancia)
+    .flatMap(entidad ->
+      eitherCatch("validando instancia de entidad en memoria", 
+        entidad, validacion))
+    .flatMap(entidad ->
+      eitherCatch("persistiendo nueva instancia", 
+        () -> repositorio.save(entidad)))
+    .flatMap(entidad ->
+      eitherCatch("recuperando clave primaria", 
+        () -> clavePrimaria.apply(entidad)));
+}
+```
 
 
