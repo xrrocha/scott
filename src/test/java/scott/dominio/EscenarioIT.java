@@ -10,116 +10,93 @@ import scott.PruebaIntegracion;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
-import java.util.function.Function;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static scott.dominio.Genero.FEMENINO;
 import static scott.dominio.Genero.MASCULINO;
+import static scott.infra.jpa.RepositorioDSL.leer;
 
 @Transactional
 @SpringBootTest
 public class EscenarioIT extends PruebaIntegracion {
 
     @Test
-    public void pueblaDatos() {
+    public void dslFunciona() {
 
-        final var idContabilidad =
-                servicioDepartamento.crearDepartamento(
-                                "10",
-                                "Contabilidad",
-                                "Quito")
-                        .get();
-        final var idInvestigacion =
-                servicioDepartamento.crearDepartamento(
-                                "20",
-                                "Investigación",
-                                "Sunrise")
-                        .get();
-        final var idVentas =
-                servicioDepartamento.crearDepartamento(
-                                "30",
-                                "Ventas",
-                                "Bogota")
-                        .get();
-
-        final var idKing = servicioEmpleado.crearEmpleado(
-                        "7839",
-                        "King",
-                        FEMENINO,
-                        "Presidente",
-                        null,
-                        LocalDate.of(2011, 11, 17),
-                        new BigDecimal(15000),
-                        null,
-                        idContabilidad)
-                .get();
-
-        final var idJones = servicioEmpleado.crearEmpleado(
-                        "7566",
-                        "Jones",
-                        MASCULINO,
-                        "Gerente",
-                        idKing,
-                        LocalDate.of(2011, 4, 2),
-                        new BigDecimal(14875),
-                        null,
-                        idInvestigacion)
-                .get();
-
-        final var idBlake = servicioEmpleado.crearEmpleado(
-                        "7698",
-                        "Blake",
-                        MASCULINO,
-                        "Gerente",
-                        idKing,
-                        LocalDate.of(2011, 1, 1),
-                        new BigDecimal(14250),
-                        null,
-                        idVentas)
-                .get();
-
-        final var idAllen = servicioEmpleado.crearEmpleado(
-                        "7499",
-                        "Allen",
-                        MASCULINO,
-                        "Vendedor",
-                        idBlake,
-                        LocalDate.of(2011, 2, 20),
-                        new BigDecimal(8000),
-                        new BigDecimal(1500),
-                        idVentas)
-                .get();
-
-        final var empleados =
-                List.ofAll(repositorioEmpleado.findAll())
-                        .toMap(Empleado::getId, Function.identity());
+        final var contabilidad = crearDepartamento("10", "Contabilidad", "Quito");
+        final var investigacion = crearDepartamento("20", "Investigación", "Sunrise");
+        final var ventas = crearDepartamento("30", "Ventas", "Bogota");
 
         assertEquals(
-                HashSet.of(idKing, idJones, idBlake, idAllen),
-                empleados.keySet()
+                HashSet.of(contabilidad, investigacion, ventas),
+                List.ofAll(repositorioDepartamento.findAll()).toSet()
         );
 
-        final var allenAntes = empleados.get(idAllen).get();
-        assertEquals("Vendedor", allenAntes.getCargo());
-        assertEquals(idBlake, allenAntes.getSupervisor().getId());
-        assertEquals(new BigDecimal(8000), allenAntes.getSalario());
-        assertEquals(new BigDecimal(1500), allenAntes.getComision());
+        final var king = crearEmpleado(
+                "7839", "King", FEMENINO, "Presidente",
+                null, LocalDate.of(2011, 11, 17),
+                new BigDecimal(15000), null, contabilidad);
+
+        final var jones = crearEmpleado(
+                "7566", "Jones", MASCULINO, "Gerente",
+                king, LocalDate.of(2011, 4, 2),
+                new BigDecimal(14875), null, investigacion);
+
+        final var blake = crearEmpleado(
+                "7698", "Blake", MASCULINO, "Gerente", king,
+                LocalDate.of(2011, 1, 1),
+                new BigDecimal(14250), null, ventas);
+
+        final var allen = crearEmpleado(
+                "7499", "Allen", MASCULINO, "Vendedor", blake,
+                LocalDate.of(2011, 2, 20),
+                new BigDecimal(8000), new BigDecimal(1500), ventas);
+
+        assertEquals(
+                HashSet.of(king, jones, blake, allen),
+                List.ofAll(repositorioEmpleado.findAll()).toSet()
+        );
+
+        assertEquals("Vendedor", allen.getCargo());
+        assertEquals(blake, allen.getSupervisor());
+        assertEquals(new BigDecimal(8000), allen.getSalario());
+        assertEquals(new BigDecimal(1500), allen.getComision());
+        assertEquals(ventas, allen.getDepartamento());
 
         servicioEmpleado.reasignar(
-                idAllen,
-                idContabilidad,
-                "Oficinista",
-                idKing,
-                new BigDecimal(5000),
-                null
-        );
+                allen.getId(), contabilidad.getId(), "Oficinista", king.getId(),
+                new BigDecimal(5000), null);
 
-        final var allenDespues = repositorioEmpleado.findById(idAllen).get();
+        final var allenDespues = leer(repositorioEmpleado, allen.getId());
         assertEquals("Oficinista", allenDespues.getCargo());
-        assertEquals(idKing, allenDespues.getSupervisor().getId());
+        assertEquals(king, allenDespues.getSupervisor());
         assertEquals(new BigDecimal(5000), allenDespues.getSalario());
         assertNull(allenDespues.getComision());
+        assertEquals(contabilidad, allen.getDepartamento());
+    }
+
+    private Departamento crearDepartamento(String codigo, String nombre, String localidad) {
+        return servicioDepartamento.crearDepartamento(codigo, nombre, localidad)
+                .map(idDepartamento -> leer(repositorioDepartamento, idDepartamento))
+                .get();
+    }
+
+    private Empleado crearEmpleado(String codigo,
+                                   String nombre,
+                                   Genero genero,
+                                   String cargo,
+                                   Empleado supervisor,
+                                   LocalDate fechaContratacion,
+                                   BigDecimal salario,
+                                   BigDecimal comision,
+                                   Departamento departamento) {
+        return servicioEmpleado.crearEmpleado(
+                        codigo, nombre, genero, cargo,
+                        supervisor == null ? null : supervisor.getId(),
+                        fechaContratacion, salario, comision, departamento.getId())
+                .map(idEmpleado -> leer(repositorioEmpleado, idEmpleado))
+                .get();
     }
 
     private final RepositorioDepartamento repositorioDepartamento;

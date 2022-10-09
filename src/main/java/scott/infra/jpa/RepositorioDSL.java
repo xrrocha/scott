@@ -76,6 +76,12 @@ public class RepositorioDSL {
                 .orElseThrow(() -> new RuntimeException("Id inexistente: %s".formatted(id)));
     }
 
+    public static <E, C> E leer(Function<C, Optional<E>> lector, C clave) {
+        return Optional.ofNullable(clave)
+                .flatMap(lector)
+                .orElseThrow(() -> new RuntimeException("Id inexistente: %s".formatted(clave)));
+    }
+
     public static <E, I> E leerOpcional(JpaRepository<E, I> repositorio, I id) {
         if (id == null) return null;
         else return repositorio.findById(id)
