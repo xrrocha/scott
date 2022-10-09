@@ -49,7 +49,7 @@ Empleando el DSL implementado en este repositorio, el código anterior queda red
 // Retorna id generado para nuevo departamento
 public String crearDepartamento(String codigo, String nombre, String localidad) {
     return persistirInstancia(
-        repositorioDepartamento,
+        repositorioDepartamento, Departamento::getId,
         () -> Departamento.builder()
                   .codigo(codigo)
                   .nombre(nombre)
@@ -456,3 +456,9 @@ generar el mensaje de error apropiado para toda posible excepción.
 
 Al final, el nivel superior de la aplicación decide qué hacer cuando hay errores: hacer _logging_, retornar un 
 código HTTP 404, etc.
+
+Para apreciar el uso del DSL en código "real" véase:
+
+- [El servicio de departamento](src/main/java/scott/dominio/ServicioDepartamento.java)
+- [El servicio de empleado](src/main/java/scott/dominio/ServicioEmpleado.java)
+- [La prueba de integración de estos servicios](src/test/java/scott/dominio/EscenarioIT.java)
