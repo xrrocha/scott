@@ -1,5 +1,7 @@
 package scott.dominio;
 
+import io.vavr.collection.HashSet;
+import io.vavr.collection.List;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -8,7 +10,10 @@ import scott.PruebaIntegracion;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.function.Function;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static scott.dominio.Genero.FEMENINO;
 import static scott.dominio.Genero.MASCULINO;
 
@@ -85,13 +90,50 @@ public class EscenarioIT extends PruebaIntegracion {
                         new BigDecimal(1500),
                         idVentas)
                 .get();
+
+        final var empleados =
+                List.ofAll(repositorioEmpleado.findAll())
+                        .toMap(Empleado::getId, Function.identity());
+
+        assertEquals(
+                HashSet.of(idKing, idJones, idBlake, idAllen),
+                empleados.keySet()
+        );
+
+        final var allenAntes = empleados.get(idAllen).get();
+        assertEquals("Vendedor", allenAntes.getCargo());
+        assertEquals(idBlake, allenAntes.getSupervisor().getId());
+        assertEquals(new BigDecimal(8000), allenAntes.getSalario());
+        assertEquals(new BigDecimal(1500), allenAntes.getComision());
+
+        servicioEmpleado.reasignar(
+                idAllen,
+                idContabilidad,
+                "Oficinista",
+                idKing,
+                new BigDecimal(5000),
+                null
+        );
+
+        final var allenDespues = repositorioEmpleado.findById(idAllen).get();
+        assertEquals("Oficinista", allenDespues.getCargo());
+        assertEquals(idKing, allenDespues.getSupervisor().getId());
+        assertEquals(new BigDecimal(5000), allenDespues.getSalario());
+        assertNull(allenDespues.getComision());
     }
 
+    private final RepositorioDepartamento repositorioDepartamento;
+    private final RepositorioEmpleado repositorioEmpleado;
     private final ServicioDepartamento servicioDepartamento;
     private final ServicioEmpleado servicioEmpleado;
 
     @Autowired
-    public EscenarioIT(ServicioDepartamento servicioDepartamento, ServicioEmpleado servicioEmpleado) {
+    public EscenarioIT(RepositorioDepartamento repositorioDepartamento,
+                       RepositorioEmpleado repositorioEmpleado,
+                       ServicioDepartamento servicioDepartamento,
+                       ServicioEmpleado servicioEmpleado) {
+        this.repositorioDepartamento = repositorioDepartamento;
+        this.repositorioEmpleado = repositorioEmpleado;
         this.servicioDepartamento = servicioDepartamento;
         this.servicioEmpleado = servicioEmpleado;
     }
