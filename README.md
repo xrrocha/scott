@@ -33,7 +33,7 @@ public String crearDepartamento(String codigo, String nombre, String localidad) 
   // Persiste nuevo departamento
   final Departamento departamentoGuardado;
   try {
-    departamentoGuardado = repositorio.save(departamento);
+    departamentoGuardado = repositorioDepartamento.save(departamento);
   } catch (Exception e) {
     throw new RuntimeException("Error persistiendo nuevo departamento", e);
   }
@@ -49,7 +49,7 @@ Empleando el DSL implementado en este repositorio, la misma funcionalidad se imp
 // Retorna id generado para nuevo departamento
 public String crearDepartamento(String codigo, String nombre, String localidad) {
     return persistirInstancia(
-        repositorio,
+        repositorioDepartamento,
         () -> Departamento.builder()
                   .codigo(codigo)
                   .nombre(nombre)
@@ -146,7 +146,7 @@ public String crearDepartamento(String codigo, String nombre, String localidad) 
     // Persiste nuevo departamento
     final Departamento departamentoGuardado;
     try {
-        departamentoGuardado = repositorio.save(departamento);
+        departamentoGuardado = repositorioDepartamento.save(departamento);
     } catch (Exception e) {
         throw new RuntimeException("Error de persistencia creando departamento", e);
     }
@@ -175,7 +175,7 @@ public String crearEmpleado(String codigo, String nombre, Genero genero) {
     // Persiste nuevo Empleado
     final Empleado empleadoGuardado;
     try {
-        empleadoGuardado = repositorio.save(empleado);
+        empleadoGuardado = repositorioEmpleado.save(empleado);
     } catch (Exception e) {
         throw new RuntimeException("Error de persistencia creando empleado", e);
     }
@@ -242,11 +242,11 @@ public String crearDepartamento(String codigo, String nombre, String localidad) 
         throw new RuntimeException("Error de validación creando departamento", e);
     }
     
-    // *** La validación de unicidad ocurre aquí ***
+    // *** La nueva validación de unicidad ocurre aquí ***
     // Valida que el código de departamento no sea duplicado
     final Optional<Departamento> optDepartamento;
     try {
-        optDepartamento = repositorio .findByCodigo(codigo);
+        optDepartamento = repositorioDepartamento .findByCodigo(codigo);
     } catch (Exception e) {
         throw new RuntimeException("Error recuperando departamento por código", e);
     }
@@ -258,7 +258,7 @@ public String crearDepartamento(String codigo, String nombre, String localidad) 
     // Persiste nuevo departamento
     final Departamento departamentoGuardado;
     try {
-        departamentoGuardado = repositorio.save(departamento);
+        departamentoGuardado = repositorioDepartamento.save(departamento);
     } catch (Exception e) {
         throw new RuntimeException("Error de persistencia creando departamento", e);
     }
@@ -302,8 +302,7 @@ natural sería un ``Supplier<Optional<E>>``.
 Veamos:
 
 ```java
-public static<E, I> 
-I persistirInstancia(
+public static<E, I> I persistirInstancia(
     JpaRepository<E, I> repositorio,
     Function<E, I> clavePrimaria,
     Consumer<E> validacion,
@@ -346,8 +345,8 @@ Armados con este método genérico, la creación de un nuevo departamento lucir�
 ```java
 public String crearDepartamento(String codigo, String nombre, String localidad) {
     return persistirInstancia(
-        repositorio,
-        detectarDuplicado(repositorio::buscarPorCodigo, codigo),
+        repositorioDepartamento,
+        detectarDuplicado(repositorioDepartamento::buscarPorCodigo, codigo),
         () -> Departamento.builder()
                 .codigo(codigo)
                 .nombre(nombre)
@@ -359,8 +358,8 @@ public String crearDepartamento(String codigo, String nombre, String localidad) 
 
 🤩 Aah, _excelente_ simplificación! 
 
-Y es segura en tipos de datos! Si, por error, escribiéramos `repositorio` donde debiera decir 
-`repositorio`, el compilador de Java y/o la IDE nos lo harían saber _de inmediato_.
+Y es segura en tipos de datos! Si, por error, escribiéramos `repositorioEmpleado` donde debiera decir 
+`repositorioDepartamento`, el compilador de Java y/o la IDE nos lo harían saber _de inmediato_.
 
 ### Reflexiones Acerca del Estilo del DSL
 
