@@ -474,7 +474,8 @@ Es fácil convertir una lambda que retorna `T` (y que puede fallar) en un `Eithe
 excepción retornada en el lado izquierdo contenga un mensaje apropiado para el contexto de ejecución:
 
 ```java
-public static <T> Either<RuntimeException, T> 
+public static <T> 
+Either<RuntimeException, T> 
 eitherCatch(
   String contexto, 
   CheckedFunction0<T> lambda) 
@@ -513,11 +514,11 @@ persistirInstancia(
       eitherCatch("validando instancia de entidad en memoria", 
         entidad, validacion))
     .flatMap(entidad ->
-      eitherCatch("persistiendo nueva instancia", 
-        () -> repositorio.save(entidad)))
+      eitherCatch("persistiendo nueva instancia",  () -> 
+        repositorio.save(entidad)))
     .flatMap(entidad ->
-      eitherCatch("recuperando clave primaria", 
-        () -> clavePrimaria.apply(entidad)));
+      eitherCatch("recuperando clave primaria", () ->
+        clavePrimaria.apply(entidad)));
 }
 ```
 
