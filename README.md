@@ -4,13 +4,13 @@
 Este repositorio ilustra el diseño, implementación y uso de un lenguaje de dominio específico (DSL) en Java 17
 empleando patrones funcionales.
 El argumento de estudio es una aplicación SpringBoot JPA inspirada en el tradicional esquema Oracle _scott/tiger_.
-Para comprender las técnicas empleadas para implementar este DSL se requiere familiaridad con las 
+Para comprender las técnicas empleadas para implementar este DSL es útil tener familiaridad con las 
 [lambdas de Java](https://docs.oracle.com/javase/tutorial/java/javaOO/lambdaexpressions.html) 
 así como con 
 [Spring Data JPA](https://spring.io/projects/spring-data-jpa).
 
-El DSL implementado en este repositorio captura patrones repetitivos en el uso de repositorios JPA desde componentes 
-Spring con estereotipo de servicio (`@Service`).
+El DSL implementado en este repositorio captura patrones repetitivos en componentes Spring que hacen uso de 
+repositorios JPA (`@Service`, `@Controller`, ...).
 
 Un servicio Spring típico implementaría imperativamente la persistencia de una nueva instancia de `Departamento` en 
 la base de datos como:
@@ -43,7 +43,7 @@ public String crearDepartamento(String codigo, String nombre, String localidad) 
 }
 ```
 
-Empleando el DSL implementado en este repositorio, la misma funcionalidad se implementaría sucintamente como:
+Empleando el DSL implementado en este repositorio, la misma funcionalidad se implementaría, sucintamente, como:
 
 ```java
 // Retorna id generado para nuevo departamento
