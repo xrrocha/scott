@@ -254,6 +254,7 @@ public String crearDepartamento(String codigo, String nombre, String localidad) 
         String mensaje = "Ya existe un departamento con codigo %s: %s!".formatted(codigo, d.getNombre());
         throw new IllegalArgumentException(mensaje);
     });
+    // *** Fin de nueva validación de unicidad ***
 
     // Persiste nuevo departamento
     final Departamento departamentoGuardado;
@@ -277,8 +278,6 @@ recetas repetitivas como esta**.
 
 ### Capturando Recetas Repetitivas
 
-Qué partes varían de caso en caso en la receta repetitiva que nos ocupa? 
-
 Qué es lo que cambia de entidad en entidad cuando queremos persistir una nueva instancia en la base de datos?
 
 - Cambia el tipo de datos concreto de la entidad (`Departamento`, `Empleado`, ...)
@@ -296,8 +295,8 @@ Para las clases de entidad se puede definir un tipo genérico `E`.
 
 La porción de lógica que construye en memoria una nueva instancia de entidad es una lambda de tipo `Supplier<E>`.
 
-La porción de lógica que retorna una posible instancia de entidad ya existente para el nuevo valor de clave primaria 
-natural sería un ``Supplier<Optional<E>>``.
+La porción de lógica que valida la nueva instancia de entidad en memoria antes de persistirla (por ejemplo, para
+validar que no exista previamente un valor de clave natural) sería un `Consumer<E>` que puede fallar con una excepción.
 
 Veamos:
 
