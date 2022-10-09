@@ -303,10 +303,10 @@ Veamos:
 
 ```java
 public static<E, I> I persistirInstancia(
-    JpaRepository<E, I> repositorio,
-    Function<E, I> clavePrimaria,
-    Consumer<E> validacion,
-    Supplier<E> crearInstancia
+    JpaRepository<E, I>   repositorio,
+    Function<E, I>        clavePrimaria,
+    Consumer<E>           validacion,
+    Supplier<E>           crearInstancia
 ) {
     final E entidad;
     try {
@@ -340,7 +340,7 @@ public static <E, C> Consumer<E> detectarDuplicado(Function<C, Optional<E>> extr
 }
 ```
 
-Armados con este método genérico, la creación de un nuevo departamento luciría como:
+Armados con estos método genéricos, la creación de un nuevo departamento luciría como:
 
 ```java
 public String crearDepartamento(String codigo, String nombre, String localidad) {
@@ -392,10 +392,10 @@ _Somewhere in the Rytridian Galaxy, Ultra Lord weeps 🥺_
 La programación funcional ofrece también una manera de ocuparse de las condiciones de error _como datos_ y no como una 
 ruptura del flujo natural del programa: el tipo de datos `Either`
 
-La librería funcional [varv](https://vavr.io) provee una implementación conveniente del tipo de datos funcional 
+La librería funcional [Vavr](https://vavr.io) provee una implementación conveniente del tipo de datos funcional 
 `Either<L, R>` para Java. 
 
-Una instancia de `Either` contiene uno de dos posibles valores:
+Una instancia de `Either<L, R>` contiene uno de dos posibles valores:
 
 - Un valor útil (`R`, por _right_) si la computación que le dió origen completó exitosamente, o
 - Un valor de error (`L`, por _left_) si la computación terminó anormalmente
@@ -440,9 +440,14 @@ public static <E, I> Either<Falla, I> persistirInstancia(
 }
 ```
 
+Significativamente más simple e inteligible que la versión basada en excepciones!
+
 Es de suma importancia notar que cuando `Either` falla, la línea de transformación se interrumpe inmediatamente! Por 
 esta razón se dice que el lado izquierdo de `Either` causa un _cortocircuito_.
 
 Esta es la razón por la cual es posible concatenar las acciones sin (aparentemente) ocuparse de los errores. En el 
 código anterior, el texto descriptivo de cada paso de la línea de transformación se utiliza como contexto para 
 generar el mensaje de error apropiado para toda posible excepción.
+
+Al final, el nivel superior de la aplicación decide qué hacer cuando hay errores: hacer _logging_, retornar un 
+código HTTP 404, etc.
