@@ -18,32 +18,32 @@ la base de datos como:
 ```java
 // Retorna id generado para nuevo departamento
 public String crearDepartamento(String codigo, String nombre, String localidad) {
-  // Construye y valida departamento
-  final Departamento departamento;
-  try {
-    departamento = Departamento.builder()
-        .codigo(codigo)
-        .nombre(nombre)
-        .localidad(localidad)
-        .build();
-  } catch (Exception e) {
-    throw new RuntimeException("Error de validación creando departamento", e);
-  }
+    // Construye y valida departamento
+    final Departamento departamento;
+    try {
+        departamento = Departamento.builder()
+                            .codigo(codigo)
+                            .nombre(nombre)
+                            .localidad(localidad)
+                            .build();
+    } catch (Exception e) {
+        throw new RuntimeException("Error de validación creando departamento", e);
+    }
 
-  // Persiste nuevo departamento
-  final Departamento departamentoGuardado;
-  try {
-    departamentoGuardado = repositorioDepartamento.save(departamento);
-  } catch (Exception e) {
-    throw new RuntimeException("Error persistiendo nuevo departamento", e);
-  }
+    // Persiste nuevo departamento
+    final Departamento departamentoGuardado;
+    try {
+        departamentoGuardado = repositorioDepartamento.save(departamento);
+    } catch (Exception e) {
+        throw new RuntimeException("Error persistiendo nuevo departamento", e);
+    }
 
-  // Retorna id generado para nuevo departamento
-  return departamentoGuardado.getId();
+    // Retorna id generado para nuevo departamento
+    return departamentoGuardado.getId();
 }
 ```
 
-Empleando el DSL implementado en este repositorio, la misma funcionalidad se implementaría, sucintamente, como:
+Empleando el DSL implementado en este repositorio, el código anterior queda reducido a:
 
 ```java
 // Retorna id generado para nuevo departamento
@@ -281,23 +281,22 @@ recetas repetitivas como esta**.
 Qué es lo que cambia de entidad en entidad cuando queremos persistir una nueva instancia en la base de datos?
 
 - Cambia el tipo de datos concreto de la entidad (`Departamento`, `Empleado`, ...)
-- Cambia la porción de lógica que construye y valida una nueva instancia de la entidad en memoria
-- Cambia el método del repositorio que localiza una instancia dado el valor de la clave primaria natural
+- Cambia la lógica que construye y valida una nueva instancia de la entidad en memoria
+- Cambia la lógica que valida la instancia antes de persistirla (por ejemplo para validar unicidad de clave natural)
 
 Todo lo demás tiene _siempre_ la misma lógica!
 
-Para formular las partes móviles de forma reutilizable Java provee dos poderosos aliados: 
+Para formular las partes móviles de forma reutilizable Java provee dos poderosos mecanismos: 
 
-- Los tipos de datos genéricos y 
-- Las lambdas
+- Tipos de datos genéricos y 
+- Lambdas
 
 Para las clases de entidad se puede definir un tipo genérico `E`.
 
 La porción de lógica que construye en memoria una nueva instancia de entidad es una lambda de tipo `Supplier<E>`.
 
-La porción de lógica que valida la nueva instancia de entidad en memoria antes de persistirla (por ejemplo, para
-validar que no exista previamente un valor de clave natural) sería un `Consumer<E>` opcional que puede fallar con una 
-excepción.
+La porción de lógica que valida la nueva instancia de entidad en memoria antes de persistirla sería un `Consumer<E>` 
+opcional que puede fallar con una excepción.
 
 Veamos:
 
@@ -340,7 +339,7 @@ public static <E, C> Consumer<E> detectarDuplicado(Function<C, Optional<E>> extr
 }
 ```
 
-Armados con estos método genéricos, la creación de un nuevo departamento luciría como:
+Armados con estos método genérico, la creación de un nuevo departamento luciría como:
 
 ```java
 public String crearDepartamento(String codigo, String nombre, String localidad) {
@@ -442,12 +441,12 @@ public static <E, I> Either<Falla, I> persistirInstancia(
 }
 ```
 
-Significativamente más simple e inteligible que la versión basada en excepciones!
+Esta implementación del método DSL es mucho más simple e inteligible que la versión basada en excepciones!
 
-Es de suma importancia notar que cuando `Either` falla, la línea de transformación se interrumpe inmediatamente! Por 
-esta razón se dice que el lado izquierdo de `Either` causa un _cortocircuito_.
+Cuando `Either` falla, la línea de transformación se interrumpe inmediatamente! Por esta razón se dice que el lado 
+izquierdo de `Either` causa un _cortocircuito_.
 
-Esta es la razón por la cual es posible concatenar las acciones sin (aparentemente) ocuparse de los errores. En el 
+Esta es la razón por la que es posible concatenar las acciones sin (aparentemente) ocuparse de los errores. En el 
 código anterior, el texto descriptivo de cada paso de la línea de transformación se utiliza como contexto para 
 generar el mensaje de error apropiado para toda posible excepción.
 
