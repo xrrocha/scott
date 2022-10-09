@@ -2,7 +2,7 @@ package scott.dominio;
 
 import io.vavr.control.Either;
 import org.springframework.stereotype.Service;
-import scott.infra.Resultados.Falla;
+import scott.infra.Falla;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -27,7 +27,6 @@ public interface ServicioEmpleado {
                                   BigDecimal salario,
                                   BigDecimal comision);
 
-    // TODO Reimplementar métodos de servicio de empleado con Either
     @Service
     class Impl implements ServicioEmpleado {
         @Override
@@ -40,22 +39,21 @@ public interface ServicioEmpleado {
                                                    BigDecimal salario,
                                                    BigDecimal comision,
                                                    String idDepartamento) {
-            return responderCon(() ->
-                    persistirInstancia(
-                            repositorioEmpleado,
-                            detectarDuplicado(repositorioEmpleado::buscarPorCodigo, codigo),
-                            () -> Empleado.builder()
-                                    .codigo(codigo)
-                                    .nombre(nombre)
-                                    .genero(genero)
-                                    .cargo(cargo)
-                                    .supervisor(leerOpcional(repositorioEmpleado, idSupervisor))
-                                    .fechaContratacion(fechaContratacion)
-                                    .salario(salario)
-                                    .comision(comision)
-                                    .departamento(leer(repositorioDepartamento, idDepartamento))
-                                    .build()
-                    ));
+            return persistirInstancia(
+                    repositorioEmpleado, Empleado::getId,
+                    detectarDuplicado(repositorioEmpleado::buscarPorCodigo, codigo),
+                    () -> Empleado.builder()
+                            .codigo(codigo)
+                            .nombre(nombre)
+                            .genero(genero)
+                            .cargo(cargo)
+                            .supervisor(leerOpcional(repositorioEmpleado, idSupervisor))
+                            .fechaContratacion(fechaContratacion)
+                            .salario(salario)
+                            .comision(comision)
+                            .departamento(leer(repositorioDepartamento, idDepartamento))
+                            .build()
+            );
         }
 
         @Override
@@ -65,14 +63,17 @@ public interface ServicioEmpleado {
                                              String idSupervisor,
                                              BigDecimal salario,
                                              BigDecimal comision) {
-            return ejecutar(() ->
-                    actualizar(idEmpleado, repositorioEmpleado,
-                            empleado -> empleado.reasignar(
+            return actualizar(
+                    idEmpleado, repositorioEmpleado,
+                    empleado ->
+                            empleado.reasignar(
                                     leer(repositorioDepartamento, idDepartamento),
                                     cargo,
                                     leerOpcional(repositorioEmpleado, idSupervisor),
                                     salario,
-                                    comision)));
+                                    comision
+                            )
+            );
         }
 
         private final RepositorioEmpleado repositorioEmpleado;
